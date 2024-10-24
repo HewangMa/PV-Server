@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Media Server</title>
+  <style>
+    * {
+      font-size: 50px;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    img {
+      margin: 2px;
+      max-width: 100%;
+      height: auto;
+      display: block;
+    }
+  </style>
+</head>
+
+<body>
+  <h2>Directory listing for {{ req_path }}</h2>
+  <div class="container">
+    {% for item in items %}
+    <div class="item">
+      {% if item['is_dir'] %}
+      <a href="/browse/{{ item['path'] }}">{{ item['name'] }}</a>
+      {% else %}
+      <a href="/browse/{{ item['path'] }}">
+        <img src="/browse/{{ item['path'] }}" alt="{{ item['name'] }}" title="{{ item['name'] }}" />
+      </a>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</body>
+
+</html>
