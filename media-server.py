@@ -1,32 +1,47 @@
+import hashlib
+
 from flask import Flask, send_from_directory, request, jsonify, abort, render_template
 import os
 
+
+class Utils:
+    @staticmethod
+    def hash_key(key: str) -> str:
+        hash_object = hashlib.sha256()
+        hash_object.update(key.encode('utf-8'))
+        return hash_object.hexdigest()
+
+
 app = Flask(__name__)
-MEDIA_DIR = os.path.expanduser("/mnt/mechanical/resource")
+# MEDIA_DIR = os.path.expanduser("/mnt/mechanical/resource")
+# MEDIA_DIR = os.path.expanduser("C:\Users\mhw\Pictures\Feedback\{3A2395B0-8345-465E-B4D5-9E89807E0C51}")
+MEDIA_DIR = "D:/Capture001.png"
+PWD_HASH = '34f681da8fa0841964a9ab7798430be9bc50be2d8e64beeaa00805e3d6c1682f'
 
 
 @app.route("/")
 def index():
     return """
-<head>
-
-<style>
-      * {
-        font-size: 50px;
-      }
-    </style>
-</head>
-    <h1>Media Server</h1>
-    <ul>
-        <li><a href="/browse/">Browse Files</a></li>
-    </ul>
-    """
+            <head>
+            
+                <style>
+                  * {
+                    font-size: 50px;
+                  }
+                </style>
+            </head>
+                <h1>Media Server</h1>
+                <ul>
+                    <li><a href="/browse/">Browse Files</a></li>
+                </ul>
+            """
 
 
 @app.route("/browse/", defaults={"req_path": ""})
 @app.route("/browse/<path:req_path>")
 def browse(req_path):
     abs_path = os.path.join(MEDIA_DIR, req_path)
+    print(abs_path)
 
     if not os.path.exists(abs_path):
         return abort(404)
@@ -51,17 +66,7 @@ def browse(req_path):
     return render_template("browse.html", req_path=req_path, items=items)
 
 
-@app.route("/delete/<path:file_path>", methods=["POST"])
-def delete(file_path):
-    abs_path = os.path.join(MEDIA_DIR, file_path)
-    if not os.path.exists(abs_path):
-        return jsonify(success=False, message="File not found"), 404
-    try:
-        os.remove(abs_path)
-        return jsonify(success=True, message="File deleted")
-    except Exception as e:
-        return jsonify(success=False, message=str(e)), 500
-
-
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8017, debug=True)
+    # my_pwd = 'zisemianju'
+    # print(Utils.hash_key(my_pwd))
