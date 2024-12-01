@@ -3,9 +3,8 @@ import numpy as np
 import os
 
 
-def capture_frames(video_path, num_frames):
-    # Open the video file
-    cap = cv2.VideoCapture(video_path)
+def capture_frames(vid, num_frames):
+    cap = cv2.VideoCapture(vid)
 
     if not cap.isOpened():
         print("Error: Could not open video.")
@@ -50,7 +49,8 @@ def create_thumbnail(frames, thumb_width=100, thumb_height=100, columns=5):
     # Create a blank image to hold the thumbnails
     thumbnail_height = rows * thumb_height
     thumbnail_width = columns * thumb_width
-    thumbnail = np.zeros((thumbnail_height, thumbnail_width, 3), dtype=np.uint8)
+    thumbnail = np.zeros(
+        (thumbnail_height, thumbnail_width, 3), dtype=np.uint8)
 
     # Paste the thumbnails into the blank image
     for i, frame in enumerate(resized_frames):
@@ -65,10 +65,6 @@ def create_thumbnail(frames, thumb_width=100, thumb_height=100, columns=5):
     return thumbnail
 
 
-def save_thumbnail(thumbnail, output_path):
-    cv2.imwrite(output_path, thumbnail)
-
-
 def rename_all(dir):
     i = 0
     for file in os.listdir(dir):
@@ -79,36 +75,24 @@ def rename_all(dir):
         print(f"Renamed {file} to {new_name}")
 
 
-def generate_thumbs():
+def vid_gen_thumb(vid):
+    thumb = vid+'.jpg'
+    num_frames = 20
+    frames, width, height = capture_frames(vid, num_frames)
+    if frames:
+        thumbnail = create_thumbnail(frames, width, height, columns=5)
+        cv2.imwrite(thumb, thumbnail)
+        print(f"Thumbnail saved to {thumb}")
+    else:
+        print("No frames were captured.")
 
-    paths = [
-        "/mnt/mechanical/resource/17doc/zhangwanying/",
-    ]
-    for path in paths:
-        if "thumbnails" not in os.listdir(path):
-            os.makedirs(path + "thumbnails/")
-        for file_name in os.listdir(path):
-            vid_path = path + file_name
-            if os.path.isdir(vid_path):
-                continue
 
-            img_name = file_name[:-4] + ".jpg"
-            img_path = path + "thumbnails/" + img_name
-            print(f"Handling {vid_path} and {img_path}")
-
-            num_frames = 20
-            # Capture frames from the video
-            frames, width, height = capture_frames(vid_path, num_frames)
-
-            if frames:
-                # Create thumbnail from captured frames
-                thumbnail = create_thumbnail(frames, width, height, columns=5)
-                # Save the thumbnail image
-                save_thumbnail(thumbnail, img_path)
-                print(f"Thumbnail saved to {img_path}")
-            else:
-                print("No frames were captured.")
+def gen_thumbs_in_dir(dir):
+    for root, _, files in os.walk(dir):
+        for file in files:
+            filepath = os.path.join(root, file)
+            vid_gen_thumb(filepath)
 
 
 if __name__ == "__main__":
-    generate_thumbs()
+    gen_thumbs_in_dir('.')
