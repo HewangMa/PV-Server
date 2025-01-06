@@ -1,7 +1,8 @@
 import hashlib
+import os
+import re
 
 from flask import Flask, send_from_directory, request, jsonify, abort, render_template
-import os
 
 
 class Utils:
@@ -19,6 +20,7 @@ MEDIA_DIR = os.path.expanduser("/mnt/mechanical/resource")
 PWD_HASH = '34f681da8fa0841964a9ab7798430be9bc50be2d8e64beeaa00805e3d6c1682f'
 HINT = 'the purple one'
 
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
@@ -28,7 +30,14 @@ def index():
     return render_template('index.html')
 
 
+def custom_sort(file_name):
+    match = re.findall(r'(\D+)|(\d+)', file_name)
+    parts = [(m[0], int(m[1])) if m[1] else (m[0], None) for m in match]
+    return parts
+
 # @app.route("/browse/", defaults={"req_path": ""})
+
+
 @app.route("/browse/<path:req_path>")
 def browse(req_path=''):
     abs_path = os.path.join(MEDIA_DIR, req_path)
@@ -38,7 +47,7 @@ def browse(req_path=''):
         return send_from_directory(
             os.path.dirname(abs_path), os.path.basename(abs_path)
         )
-    sorted_files = sorted(os.listdir(abs_path))
+    sorted_files = sorted(os.listdir(abs_path), key=custom_sort)
     items = []
     for filename in sorted_files:
         file_path = os.path.join(req_path, filename)
