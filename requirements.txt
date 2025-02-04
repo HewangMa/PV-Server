@@ -1,0 +1,18 @@
+autopep8 @ file:///croot/autopep8_1708962882016/work
+blinker @ file:///work/perseverance-python-buildout/croot/blinker_1698846408677/work
+click @ file:///work/perseverance-python-buildout/croot/click_1698845879718/work
+ffmpeg-python==0.2.0
+Flask @ file:///croot/flask_1716545870149/work
+itsdangerous @ file:///croot/itsdangerous_1716533337253/work
+Jinja2 @ file:///croot/jinja2_1730902924303/work
+MarkupSafe @ file:///work/perseverance-python-buildout/croot/markupsafe_1707342994941/work
+mkl-service==2.4.0
+mkl_fft @ file:///io/mkl313/mkl_fft_1730824109137/work
+mkl_random @ file:///io/mkl313/mkl_random_1730823916628/work
+numpy @ file:///croot/numpy_and_numpy_base_1708638617955/work/dist/numpy-1.26.4-cp312-cp312-linux_x86_64.whl#sha256=1d700f51d8b4fa684d858c9e3b56b1656bc5c82b6b79ff08d4e3b491c430059f
+opencv-python==4.10.0
+opencv-python-headless==4.10.0
+pycodestyle @ file:///croot/pycodestyle_1726150303809/work
+setuptools==75.1.0
+Werkzeug @ file:///croot/werkzeug_1731005776056/work
+wheel==0.44.0
