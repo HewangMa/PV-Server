@@ -14,9 +14,8 @@ class Utils:
 
 
 app = Flask(__name__)
-MEDIA_DIR = os.path.expanduser("/mnt/mechanical/resource")
-# MEDIA_DIR = os.path.expanduser("C:\Users\mhw\Pictures\Feedback\{3A2395B0-8345-465E-B4D5-9E89807E0C51}")
-# MEDIA_DIR = "D:/"
+MEDIA_DIR = os.path.expanduser(
+    "/mnt/mechanical/projects/media-server/resource")
 PWD_HASH = '34f681da8fa0841964a9ab7798430be9bc50be2d8e64beeaa00805e3d6c1682f'
 HINT = 'the purple one'
 
@@ -30,16 +29,12 @@ def index():
     return render_template('index.html')
 
 
-def custom_sort(file_name):
-    match = re.findall(r'(\D+)|(\d+)', file_name)
-    parts = [(m[0], int(m[1])) if m[1] else (m[0], None) for m in match]
-    return parts
-
-# @app.route("/browse/", defaults={"req_path": ""})
-
-
 @app.route("/browse/<path:req_path>")
 def browse(req_path=''):
+    def custom_sort(file_name):
+        match = re.findall(r'(\D+)|(\d+)', file_name)
+        parts = [(m[0], int(m[1])) if m[1] else (m[0], None) for m in match]
+        return parts
     abs_path = os.path.join(MEDIA_DIR, req_path)
     if not os.path.exists(abs_path):
         return abort(404)
