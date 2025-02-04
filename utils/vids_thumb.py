@@ -6,12 +6,10 @@ import subprocess
 
 
 def rename_all(dir):
-    i = 0
-    for file in os.listdir(dir):
+    for i, file in enumerate(os.listdir(dir)):
         print(file)
         new_name = str(i) + file[-4:]
         os.rename(dir + file, dir + new_name)
-        i += 1
         print(f"Renamed {file} to {new_name}")
 
 
@@ -65,7 +63,7 @@ def vid_gen_thumb(vid_path):
         return thumbnail
 
     filename_list = vid_path.split('.')
-    thumb_path = filename_list[0] + '.jpg'
+    thumb_path = f"{filename_list[0]}.jpg"
     num_frames = 20
     frames, width, height = capture_frames(vid_path, num_frames)
     if frames:
@@ -74,6 +72,54 @@ def vid_gen_thumb(vid_path):
         print(f"Thumbnail saved to {thumb_path}")
     else:
         print("No frames were captured.")
+
+
+vid_forms = [
+    'avi',
+    'AVI',
+    'mp4',
+    'MP4',
+    'mov',
+    'MOV',
+    'wmv',
+    'WMV',
+    'mkv',
+    'MKV',
+    'flv',
+    'FLV',
+    'webm',
+    'WEBM',
+    'mpeg',
+    'MPEG',
+    'mpg',
+    'MPG',
+    'm4v',
+    'M4V',
+    '3gp',
+    '3GP',
+    'asf',
+    'ASF',
+    'vob',
+    'VOB',
+    'ts',
+    'TS',
+    'm2ts',
+    'M2TS',
+    'divx',
+    'DIVX',
+    'rm',
+    'RM',
+    'rmvb',
+    'RMVB',
+    'ogv',
+    'OGV',
+    'mxf',
+    'MXF',
+    'mpv',
+    'MPV',
+    'hevc',
+    'HEVC',
+]
 
 
 def gen_thumbs_and_unify_to_mp4(dir):
@@ -85,7 +131,7 @@ def gen_thumbs_and_unify_to_mp4(dir):
         for file in files:
 
             filepath = os.path.join(root, file)
-            if any(filepath.endswith(suffix+'.jpg') for suffix in ['.avi', '.AVI', '.mp4', '.MP4', '.mov', '.MOV', '.wmv', '.WMV', '.mkv', '.MKV', '.flv', '.FLV', '.webm', '.WEBM', '.mpeg', '.MPEG', '.mpg', '.MPG', '.m4v', '.M4V', '.3gp', '.3GP', '.asf', '.ASF', '.vob', '.VOB', '.ts', '.TS', '.m2ts', '.M2TS', '.divx', '.DIVX', '.rm', '.RM', '.rmvb', '.RMVB', '.ogv', '.OGV', '.mxf', '.MXF', '.mpv', '.MPV', '.hevc', '.HEVC']):
+            if any(filepath.endswith(f'.{form}.jpg') for form in vid_forms):
                 os.remove(filepath)
                 continue
             filename_list = filepath.split('.')
@@ -124,4 +170,4 @@ def gen_thumbs_and_unify_to_mp4(dir):
 
 if __name__ == "__main__":
     gen_thumbs_and_unify_to_mp4(
-        '/mnt/mechanical/projects/media-server/resource/eb_vids/TheEmilyBloom')
+        'D:\Projects\mediaServer\resource\ls-magazine\arina')
