@@ -1,6 +1,7 @@
 import hashlib
 import os
 import re
+import sys
 
 from flask import Flask, send_from_directory, request, jsonify, abort, render_template
 
@@ -14,8 +15,14 @@ class Utils:
 
 
 app = Flask(__name__)
-MEDIA_DIR = os.path.expanduser(
-    "/mnt/mechanical/projects/media-server/resource")
+
+if sys.platform.startswith('win'):
+    MEDIA_DIR = os.path.expanduser("D:/Programming/resource/books/docs/")
+elif sys.platform.startswith('linux'):
+    MEDIA_DIR = os.path.expanduser("/mnt/mechanical/projects/media-server/resource")
+
+MEDIA_DIR = os.path.normpath(MEDIA_DIR)
+
 PWD_HASH = '34f681da8fa0841964a9ab7798430be9bc50be2d8e64beeaa00805e3d6c1682f'
 HINT = 'the purple one'
 
