@@ -1,7 +1,9 @@
 import cv2
+import argparse
 import numpy as np
 import os
 import time
+import sys
 import subprocess
 
 
@@ -146,9 +148,9 @@ def gen_thumbs_and_unify_to_mp4(dir):
             os.rename(filepath, _filepath)
 
             # 把不是mp4的文件转换成mp4
-            if ext.lower() != 'mp4':
+            mp4_filepath = f"{prefix}.mp4"
+            if ext.lower() != 'mp4' and not os.path.exists(mp4_filepath):
                 print(f'Changing {_filepath} to mp4')
-                mp4_filepath = f"{prefix}.mp4"
                 result = subprocess.run(
                     ['ffmpeg', '-i', _filepath, '-vcodec',
                         'libx264', '-acodec', 'aac', mp4_filepath],
@@ -161,7 +163,9 @@ def gen_thumbs_and_unify_to_mp4(dir):
                 else:
                     print(f"Error converting {_filepath}: {
                           result.stderr.decode()}")
+                os.remove(_filepath)
                 _filepath = mp4_filepath
+                
 
             thumb_filepath = f"{prefix}.jpg"
             if not os.path.exists(thumb_filepath):
@@ -169,5 +173,19 @@ def gen_thumbs_and_unify_to_mp4(dir):
 
 
 if __name__ == "__main__":
-    gen_thumbs_and_unify_to_mp4(
-        'D:\Projects\mediaServer\resource\ls-magazine\arina')
+    parser = argparse.ArgumentParser(
+        description="跨平台目录处理工具",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
+    parser.add_argument(
+        'path',
+        type=str,
+        help="要处理的目录路径（Windows/Linux均支持）"
+    )
+    args = parser.parse_args()
+    target_dir = os.path.abspath(os.path.normpath(args.path))
+    if not os.path.isdir(target_dir):
+        print(f"错误：路径不存在或不是目录 -> {target_dir}")
+        sys.exit(1)
+    # 执行处理
+    gen_thumbs_and_unify_to_mp4(target_dir)
