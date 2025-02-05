@@ -147,7 +147,7 @@ def gen_thumbs_and_unify_to_mp4(dir):
             _filepath = f"{prefix}.{ext}"
             os.rename(filepath, _filepath)
 
-            # 把不是mp4的文件转换成mp4
+            # 把不是mp4的文件转换成mp4，这一步之后不要执行concat
             mp4_filepath = f"{prefix}.mp4"
             if ext.lower() != 'mp4' and not os.path.exists(mp4_filepath):
                 print(f'Changing {_filepath} to mp4')
@@ -165,14 +165,56 @@ def gen_thumbs_and_unify_to_mp4(dir):
                           result.stderr.decode()}")
                 os.remove(_filepath)
                 _filepath = mp4_filepath
-                
 
             thumb_filepath = f"{prefix}.jpg"
             if not os.path.exists(thumb_filepath):
                 vid_gen_thumb(_filepath)
 
 
+def concat_dir(target_dir):
+    '''
+    将dir下的所有视频文件按照文件名的顺序拼接为最低720p的mp4文件
+    '''
+    video_files = [f for f in os.listdir(
+        target_dir) if f.lower().endswith(tuple(vid_forms))]
+    if not video_files:
+        print("没有找到任何视频文件")
+        return
+
+    video_files.sort()
+    name = video_files[0].split(".")[0]
+    output_filename = f"{video_files[0]}.mp4"
+    output_path = os.path.join(os.path.dirname(target_dir), output_filename)
+    
+    list_file_path = os.path.join(target_dir, "file_list.txt")
+    with open(list_file_path, 'w') as list_file:
+        for video in video_files:
+            video_path = os.path.join(target_dir, video)
+            list_file.write(f"file '{video_path}'\n")
+
+    command = [
+        'ffmpeg',
+        '-f', 'concat',
+        '-safe', '0',  # 允许绝对路径
+        '-i', list_file_path,
+        '-c', 'copy',  # 直接复制流，不重新编码
+        '-y',  # 如果输出文件已存在则覆盖
+        output_path
+    ]
+
+    try:
+        print(f"尝试拼接 {target_dir} 目录中的视频")
+        subprocess.run(command, check=True)
+        print(f"视频拼接成功，输出文件: {output_path}")
+    except subprocess.CalledProcessError as e:
+        print(f"视频拼接失败: {e}")
+    finally:
+        if os.path.exists(list_file_path):
+            os.remove(list_file_path)
+
+
 if __name__ == "__main__":
+    # 读取目录
     parser = argparse.ArgumentParser(
         description="跨平台目录处理工具",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
