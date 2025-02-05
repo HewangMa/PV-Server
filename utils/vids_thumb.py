@@ -160,10 +160,10 @@ def gen_thumbs_and_unify_to_mp4(dir):
 
                 if result.returncode == 0:
                     print(f"Successfully converted {_filepath} to MP4.")
+                    os.remove(_filepath)
                 else:
                     print(f"Error converting {_filepath}: {
                           result.stderr.decode()}")
-                os.remove(_filepath)
                 _filepath = mp4_filepath
 
             thumb_filepath = f"{prefix}.jpg"
