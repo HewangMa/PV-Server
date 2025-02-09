@@ -66,6 +66,7 @@ def vid_gen_thumb(vid_path):
 
     filename_list = vid_path.split('.')
     thumb_path = f"{filename_list[0]}.jpg"
+    thumb_path = os.path.abspath(thumb_path)
     num_frames = 20
     frames, width, height = capture_frames(vid_path, num_frames)
     if frames:
@@ -171,46 +172,6 @@ def gen_thumbs_and_unify_to_mp4(dir):
                 vid_gen_thumb(_filepath)
 
 
-def concat_dir(target_dir):
-    '''
-    将dir下的所有视频文件按照文件名的顺序拼接为最低720p的mp4文件
-    '''
-    video_files = [f for f in os.listdir(
-        target_dir) if f.lower().endswith(tuple(vid_forms))]
-    if not video_files:
-        print("没有找到任何视频文件")
-        return
-
-    video_files.sort()
-    name = video_files[0].split(".")[0]
-    output_filename = f"{video_files[0]}.mp4"
-    output_path = os.path.join(os.path.dirname(target_dir), output_filename)
-    
-    list_file_path = os.path.join(target_dir, "file_list.txt")
-    with open(list_file_path, 'w') as list_file:
-        for video in video_files:
-            video_path = os.path.join(target_dir, video)
-            list_file.write(f"file '{video_path}'\n")
-
-    command = [
-        'ffmpeg',
-        '-f', 'concat',
-        '-safe', '0',  # 允许绝对路径
-        '-i', list_file_path,
-        '-c', 'copy',  # 直接复制流，不重新编码
-        '-y',  # 如果输出文件已存在则覆盖
-        output_path
-    ]
-
-    try:
-        print(f"尝试拼接 {target_dir} 目录中的视频")
-        subprocess.run(command, check=True)
-        print(f"视频拼接成功，输出文件: {output_path}")
-    except subprocess.CalledProcessError as e:
-        print(f"视频拼接失败: {e}")
-    finally:
-        if os.path.exists(list_file_path):
-            os.remove(list_file_path)
 
 
 if __name__ == "__main__":
