@@ -51,6 +51,8 @@ def browse(req_path=''):
     items = []
     for filename in sorted_files:
         file_path = os.path.join(req_path, filename)
+        if file_path.endswith('.rar') or file_path.endswith('.7z'):
+            continue
         items.append(
             {
                 "name": filename,
