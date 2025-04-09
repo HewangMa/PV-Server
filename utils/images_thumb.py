@@ -23,5 +23,5 @@ def rename_and_copy_first_image(directory):
 
 RESOURCE_ROOT = os.path.join(os.path.dirname(os.path.dirname(__file__)),"resource")
 # 使用方法
-directory = os.path.join(RESOURCE_ROOT,"ls land")
+directory = os.path.join(RESOURCE_ROOT,"ebp")
 rename_and_copy_first_image(directory)
