@@ -2,7 +2,6 @@ import cv2
 import argparse
 import numpy as np
 import os
-import time
 import sys
 import subprocess
 
