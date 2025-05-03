@@ -8,52 +8,6 @@ import sys
 from pathlib import Path
 
 
-def concat_dir(target_dir):
-    """
-    将dir下的所有视频文件按照文件名的顺序拼接为最低720p的mp4文件
-    """
-    video_files = [
-        f for f in os.listdir(target_dir) if f.lower().endswith(tuple(vid_forms))
-    ]
-    if not video_files:
-        print("没有找到任何视频文件")
-        return
-
-    video_files.sort()
-    name = video_files[0].split(".")[0]
-    output_filename = f"{video_files[0]}.mp4"
-    output_path = os.path.join(os.path.dirname(target_dir), output_filename)
-
-    list_file_path = os.path.join(target_dir, "file_list.txt")
-    with open(list_file_path, "w") as list_file:
-        for video in video_files:
-            video_path = os.path.join(target_dir, video)
-            list_file.write(f"file '{video_path}'\n")
-
-    command = [
-        "ffmpeg",
-        "-f",
-        "concat",
-        "-safe",
-        "0",  # 允许绝对路径
-        "-i",
-        list_file_path,
-        "-c",
-        "copy",  # 直接复制流，不重新编码
-        "-y",  # 如果输出文件已存在则覆盖
-        output_path,
-    ]
-
-    try:
-        print(f"尝试拼接 {target_dir} 目录中的视频")
-        subprocess.run(command, check=True)
-        print(f"视频拼接成功，输出文件: {output_path}")
-        # if os.path.exists(list_file_path):
-        #     os.remove(list_file_path)
-    except subprocess.CalledProcessError as e:
-        print(f"视频拼接失败: {e}")
-
-
 vid_forms = [
     "avi",
     "AVI",
@@ -102,7 +56,59 @@ vid_forms = [
 ]
 
 
-def merge_videos(end_dir_path):
+def merge_dir_by_ffmpeg(target_dir):
+    """
+    将dir下的所有视频文件按照文件名的顺序拼接为最低720p的mp4文件
+    """
+    video_files = [
+        f for f in os.listdir(target_dir) if f.lower().endswith(tuple(vid_forms))
+    ]
+    if not video_files:
+        print("没有找到任何视频文件")
+        return
+
+    video_files.sort()
+
+    file_name = Path(target_dir).name
+    output_path = os.path.join(os.path.dirname(target_dir), f"{file_name}.mp4")
+
+    list_file_path = os.path.join(target_dir, "file_list.txt")
+    with open(list_file_path, "w") as list_file:
+        for video in video_files:
+            video_path = os.path.join(target_dir, video)
+            list_file.write(f"file '{video_path}'\n")
+
+    command = [
+        "ffmpeg",
+        "-f",
+        "concat",
+        "-safe",
+        "0",
+        "-i",
+        list_file_path,
+        "-c:v",
+        "libx264",  # 视频编码为 H.264
+        "-preset",
+        "fast",  # 编码速度，可选: ultrafast, superfast, fast, medium, slow...
+        "-crf",
+        "23",  # 控制质量，值越小越清晰（默认23，推荐18-28之间）
+        "-c:a",
+        "aac",  # 音频编码为 AAC
+        "-b:a",
+        "128k",  # 音频比特率
+        "-y",  # 覆盖输出文件
+        output_path,
+    ]
+
+    try:
+        print(f"尝试拼接 {target_dir} 目录中的视频")
+        subprocess.run(command, check=True)
+        print(f"视频拼接成功，输出文件: {output_path}")
+    except subprocess.CalledProcessError as e:
+        print(f"视频拼接失败: {e}")
+
+
+def merge_dir_by_moviepy(end_dir_path):
     path = Path(end_dir_path)
     file_name = path.name
     output_file = os.path.join(os.path.dirname(end_dir_path), f"{file_name}.mp4")
@@ -135,7 +141,8 @@ def is_end_dir(dir_path):
 
 def merge_folder(dir_path):
     if is_end_dir(dir_path):
-        merge_videos(dir_path)
+        merge_dir_by_ffmpeg(dir_path)
+        # merge_dir_by_moviepy(dir_path)
     else:
         if os.path.isdir(dir_path):
             for sub in os.listdir(dir_path):
@@ -157,5 +164,4 @@ if __name__ == "__main__":
     if not os.path.isdir(target_dir):
         print(f"错误：路径不存在或不是目录 -> {target_dir}")
         sys.exit(1)
-    # 执行处理
     merge_folder(target_dir)
