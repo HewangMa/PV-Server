@@ -1,5 +1,6 @@
 import os
 import shutil
+import argparse
 
 
 def make_dir(dir, folder):
@@ -21,7 +22,19 @@ def rename_and_copy_first_image(directory):
             make_dir(root, folder)
 
 
-RESOURCE_ROOT = os.path.join(os.path.dirname(os.path.dirname(__file__)),"resource")
-# 使用方法
-directory = os.path.join(RESOURCE_ROOT,"ebp")
-rename_and_copy_first_image(directory)
+
+if __name__ == "__main__":
+    # 读取目录
+    parser = argparse.ArgumentParser(
+        description="跨平台目录处理工具",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+    parser.add_argument(
+        "path", type=str, help="要处理的目录路径（Windows/Linux均支持）"
+    )
+    args = parser.parse_args()
+    target_dir = os.path.abspath(os.path.normpath(args.path))
+    if not os.path.isdir(target_dir):
+        print(f"错误：路径不存在或不是目录 -> {target_dir}")
+        sys.exit(1)
+    rename_and_copy_first_image(target_dir)
