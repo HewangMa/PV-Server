@@ -1,1 +1,1 @@
-# mediaServer
+server
