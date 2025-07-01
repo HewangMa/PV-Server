@@ -1,3 +1,4 @@
 /resource
 *nohup.out
-.idea
+*.idea*
+*logs*
