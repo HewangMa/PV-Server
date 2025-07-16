@@ -7,6 +7,7 @@ from logging.handlers import TimedRotatingFileHandler
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import time
+import argparse
 
 
 def get_logger(
@@ -111,6 +112,9 @@ class Uploader(MAG):
             try:
                 # 上传到以项目为开头的key，key根据提供的local_path固定
                 oss_key = str(Path(*local_path.parts[4:]))
+                if self.client.is_object_exist(bucket=self.bucket, key=oss_key):
+                    logger.info(f"Obj key {oss_key} exists!")
+                    return
                 with open(local_path, "rb") as f:
                     request = oss.PutObjectRequest(
                         bucket=self.bucket, key=oss_key, body=f
@@ -132,7 +136,7 @@ class Uploader(MAG):
     def upload_dir(self, local_dir: Path):
         files_to_upload = collect_leaf_files(local_dir)
         logger.info(f"Ready to Upload {len(files_to_upload)} files parallel")
-
+        time.sleep(4)
         with ThreadPoolExecutor(max_workers=32) as executor:
             futures = [
                 executor.submit(self.upload_file, file) for file in files_to_upload
@@ -141,6 +145,18 @@ class Uploader(MAG):
                 future.result()
 
 
+def get_args():
+    parser = argparse.ArgumentParser(description="")
+    parser.add_argument(
+        "-p",
+        "--dir_path",
+        required=True,
+    )
+    return parser.parse_args()
+
+
 if __name__ == "__main__":
-    local_file = Path("/home/hewangma/projects/PV-Server/resource/purple")
+    args = get_args()
+    local_file = Path(args.dir_path).resolve()
+    logger.info(local_file)
     Uploader().upload_dir(local_file)
