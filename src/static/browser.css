@@ -1,0 +1,61 @@
+.items-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr)); /* 防止内容撑大列 */
+  gap: 16px;
+  justify-content: center;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+.item {
+  background: rgba(255, 255, 255, 0.85);
+  border: 1.5px solid #e0e0e0;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  padding: 8px;
+  text-align: center;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 100%; /* 保证不会超出网格单元 */
+  width: 100%;
+  word-break: break-all;
+  overflow-wrap: break-word;
+}
+.item img {
+  margin: 8px 0 0 0;
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  display: block;
+  border: 1.5px solid #e0e0e0;
+  background: #fafafa;
+  max-width: 100%;
+}
+.file-link {
+  padding: 8px 16px;
+  border: 1.5px solid #fe4f4f;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+  color: #333;
+  font-weight: bold;
+  margin-bottom: 4px;
+  transition: background 0.2s, border-color 0.2s;
+  width: auto; /* 让链接宽度自适应内容 */
+  max-width: 100%; /* 不超出父容器 */
+  overflow-wrap: break-word;
+  word-break: break-all;
+  white-space: normal;
+  display: inline-block; /* 让边框跟随内容 */
+}
+.file-link:hover {
+  background: #e0f7fa;
+  border-color: #fe0000;
+}
+.dir-link {
+  border-color: #fe4f4f;
+}
+.video-link {
+  border-color: #ffee00;
+}

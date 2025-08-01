@@ -1,19 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>文件浏览器</title>
-</head>
-<body>
-    <h2>请输入密码访问文件：</h2>
-    <form method="post">
-        <input type="password" name="password" required />
-        <button type="submit">提交</button>
-    </form>
-
-    {% if error %}
-        <p style="color:red;">{{ error }}</p>
-    {% endif %}
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <title>NYMPHETS HERE WELCOMING</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='index.css') }}"
+    />
+  </head>
+  <body>
+    <div class="login-box">
+      <form method="post">
+        {% if error %}
+        <div class="error">{{ error }}</div>
+        {% endif %}
+        <input
+          type="password"
+          name="password"
+          placeholder="请输入密码"
+          autofocus
+          required
+        />
+        <br />
+        <button type="submit" class="nav-btn">登录</button>
+      </form>
+    </div>
+    <script>
+      window.bgList = {{ bg_list|tojson|safe }};
+      window.bgImg = "{{ bg_img }}";
+    </script>
+    <script src="{{ url_for('static', filename='index.js') }}"></script>
+  </body>
 </html>

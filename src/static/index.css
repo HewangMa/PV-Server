@@ -1,0 +1,67 @@
+body {
+  background: #fafafa;
+  margin: 0;
+  padding: 0;
+  background-image: inherit; /* 保持原有 JS 动态设置 */
+  background-size: 100vw auto; /* 宽度适应屏幕，高度自动 */
+  background-position: center top; /* 居中显示，顶部对齐 */
+  background-repeat: repeat-y; /* 纵向重复，横向不重复 */
+  background-attachment: fixed; /* 固定背景，不随滚动移动 */
+}
+.login-box {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 16px;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.12);
+  padding: 32px 24px;
+  text-align: center;
+  min-width: 260px;
+}
+.login-box input[type="password"] {
+  padding: 10px;
+  font-size: 18px;
+  border: 2px solid #fe4f4f;
+  border-radius: 8px;
+  outline: none;
+  background: rgba(255, 255, 255, 0.8);
+  margin-bottom: 16px;
+  width: 80%;
+  box-sizing: border-box;
+}
+.error {
+  color: #e53935;
+  margin-bottom: 12px;
+}
+
+.nav-btn {
+  display: inline-block;
+  padding: 12px 32px;
+  margin: 0 8px;
+  font-size: 18px;
+  border: none;
+  border-radius: 24px;
+  background: linear-gradient(90deg, #fe4f4f 0%, #fe0000 100%);
+  color: #fff;
+  text-decoration: none;
+  font-weight: 600;
+  box-shadow: 0 4px 16px rgba(79, 172, 254, 0.12);
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s, color 0.2s;
+}
+.nav-btn:hover,
+.nav-btn:focus {
+  background: linear-gradient(90deg, #fe0000 0%, #fe4f4f 100%);
+  color: #222;
+  box-shadow: 0 6px 24px rgba(79, 172, 254, 0.18);
+  outline: none;
+}
+.location-tip {
+  text-align: center;
+  margin: 18px 0;
+  font-size: 18px;
+  color: #ff4a4a;
+  font-weight: bold;
+}

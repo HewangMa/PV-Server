@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NYMPHETS HERE WELCOMING</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='index.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='images.css') }}"
+    />
+  </head>
+  <body>
+    <div class="location-tip">UR AT {{ req_path if req_path else 'ROOT' }}</div>
+    <div class="images-grid">
+      {% for item in items %}
+      <img
+        src="{{ url_for('resource', filename=item.path) }}"
+        alt="{{ item.name }}"
+      />
+      {% endfor %}
+    </div>
+
+    <div style="text-align: center; margin: 24px 0">
+      <a href="{{ url_for('logout') }}" class="nav-btn">退出</a>
+    </div>
+  </body>
+</html>

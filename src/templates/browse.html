@@ -1,86 +1,69 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-  <meta charset="UTF-8" />
-  <title>Media Server</title>
-  <style>
-    * {
-      font-size: 24px; /* 调整字号，使内容更适合 */
-    }
-
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-    }
-
-    .container {
-      display: flex;
-      flex-wrap: wrap; /* 让目录项和图片可以换行 */
-      justify-content: center;
-      padding: 20px;
-    }
-
-    .item {
-      margin: 15px;
-      text-align: center;
-    }
-
-    .item a {
-      text-decoration: none;
-      color: black;
-    }
-
-    .item a:hover {
-      color: #007bff; /* 添加悬停效果 */
-    }
-
-    img {
-      margin: 2px;
-      max-width: 300px;
-      height: auto;
-      display: block;
-      border-radius: 8px;
-      transition: transform 0.2s ease; /* 添加平滑过渡 */
-    }
-
-    img:hover {
-      transform: scale(1.05); /* 放大效果 */
-    }
-
-    .dir-link {
-      font-size: 18px;
-      padding: 10px;
-      background-color: #f8f9fa;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-      width: 300px;
-      text-align: center;
-      margin-top: 10px;
-    }
-  </style>
-</head>
-
-<body>
-  <h2>Directory listing for {{ req_path }}</h2>
-  <div class="container">
-    {% for item in items %}
-    <div class="item">
-      {% if item['is_dir'] %}
-      <!-- 显示目录链接 -->
-      <div class="dir-link">
-        <a href="/browse/{{ item['path'] }}">{{ item['name'] }}</a>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NYMPHETS HERE WELCOMING</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='index.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='browser.css') }}"
+    />
+  </head>
+  <body>
+    <div class="location-tip">UR AT {{ req_path if req_path else 'ROOT' }}</div>
+    <div class="items-grid">
+      {% for item in items %}
+      <div class="item">
+        {% if item.type == 'dir' %}
+        <a
+          class="file-link dir-link"
+          href="{{ url_for('browse', path=item.path) }}"
+          >{{ item.name }}</a
+        >
+        {% if item.preview %}
+        <img
+          src="{{ url_for('resource', filename=item.preview) }}"
+          alt="预览: {{ item.name }}"
+        />
+        {% endif %} {% elif item.type == 'video' %} 🎬
+        <a
+          class="file-link video-link"
+          href="{{ url_for('resource', filename=item.path) }}"
+          target="_blank"
+          >{{ item.name }}</a
+        >
+        {% if item.preview %}
+        <img
+          src="{{ url_for('resource', filename=item.preview) }}"
+          alt="预览: {{ item.name }}"
+        />
+        {% endif %} {% elif item.type == 'file' %} 📄
+        <a
+          class="file-link"
+          href="{{ url_for('resource', filename=item.path) }}"
+          target="_blank"
+          >{{ item.name }}</a
+        >
+        {% if item.preview %}
+        <img
+          src="{{ url_for('resource', filename=item.preview) }}"
+          alt="预览: {{ item.name }}"
+        />
+        {% endif %} {% endif %}
       </div>
-      {% else %}
-      <!-- 显示图片 -->
-      <a href="/browse/{{ item['path'] }}">
-        <img src="/browse/{{ item['path'] }}" alt="{{ item['name'] }}" title="{{ item['name'] }}" />
-      </a>
-      {% endif %}
+      {% endfor %}
     </div>
-    {% endfor %}
-  </div>
-</body>
-
+    <div style="text-align: center; margin: 24px 0">
+      <a href="{{ url_for('logout') }}" class="nav-btn">退出</a>
+    </div>
+    <script>
+      window.bgList = {{ bg_list|tojson|safe }};
+      window.bgImg = "{{ bg_img }}";
+    </script>
+    <script src="{{ url_for('static', filename='index.js') }}"></script>
+  </body>
 </html>
