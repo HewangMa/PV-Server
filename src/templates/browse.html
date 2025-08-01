@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Media Server</title>
+  <style>
+    * {
+      font-size: 24px; /* 调整字号，使内容更适合 */
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      display: flex;
+      flex-wrap: wrap; /* 让目录项和图片可以换行 */
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .item {
+      margin: 15px;
+      text-align: center;
+    }
+
+    .item a {
+      text-decoration: none;
+      color: black;
+    }
+
+    .item a:hover {
+      color: #007bff; /* 添加悬停效果 */
+    }
+
+    img {
+      margin: 2px;
+      max-width: 300px;
+      height: auto;
+      display: block;
+      border-radius: 8px;
+      transition: transform 0.2s ease; /* 添加平滑过渡 */
+    }
+
+    img:hover {
+      transform: scale(1.05); /* 放大效果 */
+    }
+
+    .dir-link {
+      font-size: 18px;
+      padding: 10px;
+      background-color: #f8f9fa;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      width: 300px;
+      text-align: center;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+
+<body>
+  <h2>Directory listing for {{ req_path }}</h2>
+  <div class="container">
+    {% for item in items %}
+    <div class="item">
+      {% if item['is_dir'] %}
+      <!-- 显示目录链接 -->
+      <div class="dir-link">
+        <a href="/browse/{{ item['path'] }}">{{ item['name'] }}</a>
+      </div>
+      {% else %}
+      <!-- 显示图片 -->
+      <a href="/browse/{{ item['path'] }}">
+        <img src="/browse/{{ item['path'] }}" alt="{{ item['name'] }}" title="{{ item['name'] }}" />
+      </a>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</body>
+
+</html>
