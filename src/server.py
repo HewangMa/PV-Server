@@ -10,60 +10,24 @@ from flask import (
 import os
 from pathlib import Path
 import random
+import hashlib
+import socket
+import sys
+from logger import get_logger
+import re
+from utils import natural_sort, hash_pwd, port_occupied, lan_ip, IMAGES, VIDEOS
 
+logger = get_logger("app", level="DEBUG")
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
 PROJECT_DIR = Path(os.path.dirname(__file__)).parent
 RESOURCE_DIR = PROJECT_DIR / "resource"
 BACKGROUND_DIR = RESOURCE_DIR / "candies/Brace/07"
 
-# 视频扩展名
-VIDEOS = (
-    ".mp4",
-    ".avi",
-    ".mkv",
-    ".mov",
-    ".flv",
-    ".wmv",
-    ".webm",
-    ".mpeg",
-    ".mpg",
-    ".3gp",
-    ".m4v",
-    ".ts",
-    ".m3u8",
-    ".vob",
-    ".ogv",
-    ".rmvb",
-    ".m2ts",
-    ".mts",
-    ".mpg",
-    ".mpeg",
-    ".mpeg2",
-    ".mpeg4",
-    ".mpe",
-    ".mpv",
-    ".m2v",
-    ".m4p",
-    ".m4b",
-    ".m4r",
-)
-
-IMAGES = (
-    ".jpg",
-    ".jpeg",
-    ".png",
-    ".gif",
-    ".bmp",
-    ".webp",
-    ".tiff",
-    ".svg",
-    ".ico",
-    ".heic",
-)
 
 # 密码
-PASSWORD = "z"
+PWD_HASH = "34f681da8fa0841964a9ab7798430be9bc50be2d8e64beeaa00805e3d6c1682f"
+HINT = "the purple"
 
 
 @app.route("/resource/<path:filename>")
@@ -82,7 +46,7 @@ def index():
 
     if request.method == "POST":
         password = request.form["password"]
-        if password == PASSWORD:
+        if hash_pwd(password.lower()) == PWD_HASH:
             session["authenticated"] = True
             return redirect(url_for("browse"))
         else:
@@ -117,24 +81,36 @@ def browse():
         for _path in target_path.iterdir():
             name = _path.name
             rel_path = str(_path.relative_to(RESOURCE_DIR))
-
-            preview = images.get(_path.stem) or images.get(_path.stem + "_thumb")
-            item = {
-                "name": name,
-                "path": rel_path,
-                "preview": preview,
-            }
             if _path.is_dir():
-                item["type"] = "dir"
+                preview = images.get(_path.name) or images.get(_path.name + "_thumb")
+                items.append(
+                    {
+                        "type": "dir",
+                        "name": name,
+                        "path": rel_path,
+                        "preview": preview,
+                    }
+                )
             elif name.lower().endswith(VIDEOS):
-                item["type"] = "video"
-            if item.get("type") in ("video", "dir"):
-                items.append(item)
+                preview = images.get(_path.stem) or images.get(_path.stem + "_thumb")
+                items.append(
+                    {
+                        "type": "video",
+                        "name": name,
+                        "path": rel_path,
+                        "preview": preview,
+                    }
+                )
 
         if not items:
             return redirect(url_for("images", path=req_path))
 
-        items.sort(key=lambda x: x["name"])
+        items.sort(
+            key=lambda x: (
+                0 if x["type"] == "video" else 1,
+                natural_sort(x["name"]),
+            )
+        )
 
         # 背景图片逻辑
         bg_dir = BACKGROUND_DIR
@@ -145,7 +121,13 @@ def browse():
         ]
         bg_list = [str(f.relative_to(RESOURCE_DIR)) for f in bg_images]
         bg_img = random.choice(bg_list) if bg_list else None
-        return render_template("browse.html", req_path=req_path, items=items, bg_list=bg_list, bg_img=bg_img)
+        return render_template(
+            "browse.html",
+            req_path=req_path,
+            items=items,
+            bg_list=bg_list,
+            bg_img=bg_img,
+        )
     else:
         return redirect(url_for("index"))
 
@@ -169,7 +151,7 @@ def images():
                     }
                 )
 
-        image_items.sort(key=lambda x: x["name"])
+        image_items.sort(key=lambda x: natural_sort(x["name"]))
         return render_template("images.html", req_path=req_path, items=image_items)
     else:
         return redirect(url_for("index"))
@@ -181,5 +163,10 @@ def logout():
     return redirect(url_for("index"))
 
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8017)
+def start_server():
+    if not port_occupied():
+        logger.info(f"Starting PV-Server on ip of {lan_ip()} and port of 8017")
+        app.run(host="0.0.0.0", port=8017)
+    else:
+        logger.error("PV-Server is already running on port 8017.")
+        sys.exit(1)

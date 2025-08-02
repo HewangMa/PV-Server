@@ -3,58 +3,12 @@ from pprint import pprint
 from collections import defaultdict
 import logging
 import sys
-from logging.handlers import TimedRotatingFileHandler
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import time
-import argparse
+from logger import get_logger
 
-
-def get_logger(
-    name: str,
-    level: int = logging.DEBUG,
-    log_dir: str = "./logs",
-    console: bool = True,
-    when: str = "midnight",
-    backup_count: int = 7,
-) -> logging.Logger:
-    """
-    创建一个可复用的日志记录器
-    :param name: 日志记录器名称
-    :param level: 日志级别
-    :param log_dir: 日志文件保存路径
-    :param console: 是否输出到控制台
-    :param when: 按时间滚动日志（'S', 'M', 'H', 'D', 'midnight', 'W0'-'W6'）
-    :param backup_count: 日志保留份数
-    :return: 配置好的 Logger 实例
-    """
-    Path(log_dir).mkdir(parents=True, exist_ok=True)
-    logger = logging.getLogger(name)
-    logger.setLevel(level)
-    logger.propagate = False  # 避免重复输出
-
-    if not logger.handlers:  # 避免重复添加 handler
-        formatter = logging.Formatter(
-            "%(asctime)s | %(levelname)s | %(name)s | %(filename)s:%(lineno)d | %(message)s"
-        )
-
-        # 文件 Handler
-        file_handler = TimedRotatingFileHandler(
-            filename=f"{log_dir}/{name}.log",
-            when=when,
-            backupCount=backup_count,
-            encoding="utf-8",
-        )
-        file_handler.setFormatter(formatter)
-        logger.addHandler(file_handler)
-
-        # 控制台 Handler
-        if console:
-            console_handler = logging.StreamHandler(sys.stdout)
-            console_handler.setFormatter(formatter)
-            logger.addHandler(console_handler)
-
-    return logger
+logger = get_logger(name="OSS", level=logging.DEBUG)
 
 
 def collect_leaf_files(local_dir: Path) -> list[Path]:
@@ -70,8 +24,6 @@ def collect_leaf_files(local_dir: Path) -> list[Path]:
     _traverse(local_dir)
     return leaf_files
 
-
-logger = get_logger("oss_mag")
 
 MAX_RETRIES = 3
 RETRY_DELAY = 2
@@ -145,18 +97,12 @@ class Uploader(MAG):
                 future.result()
 
 
-def get_args():
-    parser = argparse.ArgumentParser(description="")
-    parser.add_argument(
-        "-p",
-        "--dir_path",
-        required=True,
-    )
-    return parser.parse_args()
+def backup_dir(path: Path):
+    path = path.resolve()
+    if not path.exists() or not path.is_dir():
+        logger.error(f"Path {path} does not exist or is not a directory.")
+        sys.exit(1)
 
-
-if __name__ == "__main__":
-    args = get_args()
-    local_file = Path(args.dir_path).resolve()
-    logger.info(local_file)
-    Uploader().upload_dir(local_file)
+    uploader = Uploader()
+    uploader.upload_dir(path)
+    logger.info(f"Backup of {path} completed.")
