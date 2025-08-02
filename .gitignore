@@ -1,6 +1,6 @@
 /resource
 *nohup.out
-*.idea*
+*.idea
 *logs*
 __pycache__
 *.pyc

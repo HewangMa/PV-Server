@@ -46,12 +46,12 @@ def main():
 
     elif args.cat:
         if not args.path:
-            logger.error("❌ 批量解压必须指定路径：-p <path>")
+            logger.error("连接视频必须指定路径：-p <path>")
             sys.exit(1)
 
     elif args.thumb:
         if not args.path:
-            logger.error("❌ 批量解压必须指定路径：-p <path>")
+            logger.error("生成缩略图必须指定路径：-p <path>")
             sys.exit(1)
         from thumb import thumb_pics_dir, thumb_vids_dir
 
@@ -60,7 +60,7 @@ def main():
 
     elif args.backup:
         if not args.path:
-            logger.error("❌ 批量解压必须指定路径：-p <path>")
+            logger.error("批量备份必须指定路径：-p <path>")
             sys.exit(1)
         from OSS import backup_dir
 
@@ -68,7 +68,7 @@ def main():
 
     elif args.clean:
         if not args.path:
-            logger.error("❌ 批量解压必须指定路径：-p <path>")
+            logger.error("清理图片文件夹必须指定路径：-p <path>")
             sys.exit(1)
 
 
