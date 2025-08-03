@@ -10,11 +10,8 @@ from flask import (
 import os
 from pathlib import Path
 import random
-import hashlib
-import socket
 import sys
 from logger import get_logger
-import re
 from utils import natural_sort, hash_pwd, port_occupied, lan_ip, IMAGES, VIDEOS
 
 logger = get_logger("app", level="DEBUG")
@@ -22,7 +19,7 @@ app = Flask(__name__)
 app.secret_key = os.urandom(24)
 PROJECT_DIR = Path(os.path.dirname(__file__)).parent
 RESOURCE_DIR = PROJECT_DIR / "resource"
-BACKGROUND_DIR = RESOURCE_DIR / "candies/Brace/07"
+BACKGROUND_DIR = RESOURCE_DIR / "background"
 
 
 # 密码

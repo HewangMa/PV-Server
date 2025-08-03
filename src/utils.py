@@ -4,10 +4,8 @@ from PIL import Image
 import send2trash
 import re
 import os
-import random
 import hashlib
 import socket
-import sys
 
 logger = get_logger("utils", level="DEBUG")
 

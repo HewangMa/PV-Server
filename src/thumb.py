@@ -1,21 +1,17 @@
 import cv2
 import os
-import shutil
 import send2trash
 from pathlib import Path
 from logger import get_logger
 from PIL import Image
 import random
-import time
 import numpy as np
 import subprocess
 from utils import (
     is_vertical,
     natural_sort,
     is_horizontal,
-    IMAGES,
     VIDEOS,
-    remove_existing_thumb,
 )
 from concurrent.futures import ProcessPoolExecutor
 
@@ -36,16 +32,8 @@ def thumb_one_pics_dir(dir: Path):
         logger.warning(f"缩略图已存在: {out_path}")
         return
 
-    vertical_pics = [
-        p
-        for p in dir.iterdir()
-        if p.is_file() and not p.stem.endswith("thumb") and is_vertical(p)
-    ]
-    horizonal_pics = [
-        p
-        for p in dir.iterdir()
-        if p.is_file() and not p.stem.endswith("thumb") and is_horizontal(p)
-    ]
+    vertical_pics = [p for p in dir.iterdir() if p.is_file() and is_vertical(p)]
+    horizonal_pics = [p for p in dir.iterdir() if p.is_file() and is_horizontal(p)]
     if len(vertical_pics) > len(horizonal_pics):
         if len(vertical_pics) < 6:
             logger.warning(f"竖幅图片数量少于6张，无法生成缩略图: {dir}")
@@ -131,8 +119,6 @@ def convert_to_mp4(file: Path) -> Path:
     result = subprocess.run(
         [
             "ffmpeg",
-            "-threads",
-            "1",  # 限制 ffmpeg 单线程, 让python进程并行
             "-y",
             "-i",
             str(file),
@@ -154,7 +140,7 @@ def convert_to_mp4(file: Path) -> Path:
 
 
 def thumb_one_vid(file: Path):
-    cv2.setNumThreads(1)  # 限制 OpenCV 单线程, 让python进程并行
+    # cv2.setNumThreads(1)  # 限制 OpenCV 单线程, 让python进程并行
     VID_FRAMES = 9
     SKIP_SECONDS = 6
 
@@ -236,16 +222,18 @@ def thumb_one_vid(file: Path):
         logger.error(f"未能从视频中捕获帧: {file}")
 
 
-def thumb_vids_dir(path: Path):
+def convert_vids_to_mp4(path: Path):
     target_vids = []
     for root, dirs, files in os.walk(path):
         for file in files:
             if file.lower().endswith(VIDEOS):
                 target_vids.append(Path(root) / file)
-    with ProcessPoolExecutor(max_workers=8) as executor:
-        executor.map(convert_to_mp4, target_vids)
-    # 确保转换完成，再读取一次target_vids
+    # ffmpeg自身是多线程的，所以这里不需要多线程
+    for file in target_vids:
+        convert_to_mp4(file)
 
+
+def thumb_vids_dir(path: Path):
     target_vids = []
     for root, dirs, files in os.walk(path):
         for file in files:
@@ -260,5 +248,4 @@ def thumb_vids_dir(path: Path):
 
 if __name__ == "__main__":
     eb_vids = "/home/hewangma/projects/PV-Server/resource/eb/Vids"
-    # remove_existing_thumb(Path(eb_vids))
     thumb_vids_dir(Path(eb_vids))

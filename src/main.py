@@ -29,6 +29,7 @@ def main():
 
     # 通用参数
     parser.add_argument("-p", "--path", type=str, help="目标路径")
+    parser.add_argument("-convert", type=str, help="是否转换视频格式（可选）")
     parser.add_argument("-pwd", "--password", type=str, help="解压密码（unrar 用）")
 
     args = parser.parse_args()
@@ -38,6 +39,10 @@ def main():
         if not args.path:
             logger.error("❌ 批量解压必须指定路径：-p <path>")
             sys.exit(1)
+        from extract import batch_extract
+
+        password = args.password  # 可以是空，默认值在 extract.py 中
+        batch_extract(Path(args.path).resolve(), password)
 
     elif args.server:
         from server import start_server
@@ -48,14 +53,19 @@ def main():
         if not args.path:
             logger.error("连接视频必须指定路径：-p <path>")
             sys.exit(1)
+        from cat_vids import cat_dirs
+
+        cat_dirs(Path(args.path).resolve())
 
     elif args.thumb:
         if not args.path:
             logger.error("生成缩略图必须指定路径：-p <path>")
             sys.exit(1)
-        from thumb import thumb_pics_dir, thumb_vids_dir
+        from thumb import thumb_pics_dir, thumb_vids_dir, convert_vids_to_mp4
 
         thumb_pics_dir(Path(args.path).resolve())
+        if args.convert:
+            convert_vids_to_mp4(Path(args.path).resolve())
         thumb_vids_dir(Path(args.path).resolve())
 
     elif args.backup:
