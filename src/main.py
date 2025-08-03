@@ -1,20 +1,10 @@
-"""
-python main.py -unrar -p <path> # 批量解压缩rar文件
-python main.py -server # 启动服务器
-python main.py -cat -p <path> # 连接一个目录下的视频文件
-python main.py -thumb -p <path> # 对图片文件夹和视频文件夹生成缩略图
-python main.py -backup -p <path> # 备份文件夹
-python main.py -clean -p <path> # 清理图片文件夹
-"""
-
 import argparse
-import sys
 from pathlib import Path
 from logger import get_logger
 from extract import batch_extract
 from server import start_server
 from cat_vids import cat_dirs
-from thumb import thumb_pics_dir, thumb_vids_dir, convert_vids_to_mp4
+from thumb import thumb_pics_dirs, thumb_dir, convert_dir
 from utils import remove_existing_vids_thumb, remove_existing_pics_thumb
 from OSS import backup_dir
 
@@ -76,14 +66,14 @@ def main():
     elif args.command == "p-thumb":
         if args.remove:
             remove_existing_pics_thumb(Path(args.path).resolve())
-        thumb_pics_dir(Path(args.path).resolve())
+        thumb_pics_dirs(Path(args.path).resolve())
 
     elif args.command == "v-thumb":
         if args.remove:
             remove_existing_vids_thumb(Path(args.path).resolve())
         if args.convert:
-            convert_vids_to_mp4(Path(args.path).resolve())
-        thumb_vids_dir(Path(args.path).resolve())
+            convert_dir(Path(args.path).resolve())
+        thumb_dir(Path(args.path).resolve())
 
     elif args.command == "backup":
         backup_dir(Path(args.path).resolve())

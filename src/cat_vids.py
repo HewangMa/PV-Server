@@ -2,7 +2,7 @@ import os
 import subprocess
 from logger import get_logger
 from utils import VIDEOS, natural_sort
-from thumb import convert_to_mp4
+from thumb import convert_vid
 
 logger = get_logger("cat_vids", level="DEBUG")
 
@@ -58,5 +58,5 @@ def cat_dirs(dir_path: Path):
             leaf_dirs.append(Path(root))
     for leaf_dir in leaf_dirs:
         # 转换之后再连接
-        convert_to_mp4(leaf_dir)
+        convert_vid(leaf_dir)
         cat_dir_by_ffmpeg(leaf_dir)

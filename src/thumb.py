@@ -106,7 +106,7 @@ def thumb_one_pics_dir(dir: Path):
     time.sleep(0.5)
 
 
-def thumb_pics_dir(path: Path):
+def thumb_pics_dirs(path: Path):
     leaf_dirs = []
     for root, dirs, _ in os.walk(path):
         if len(dirs) == 0 and "temp" not in Path(root).parts:
@@ -129,7 +129,7 @@ def thumb_pics_dir(path: Path):
 vid_logger = get_logger("vids_thumb", level="DEBUG")
 
 
-def convert_to_mp4(file: Path) -> Path:
+def convert_vid(file: Path) -> Path:
     file = file.resolve()
     if not file.is_file() or not file.name.lower().endswith(VIDEOS):
         vid_logger.error(f"文件不是视频格式: {file}")
@@ -171,7 +171,7 @@ def convert_to_mp4(file: Path) -> Path:
     time.sleep(0.5)
 
 
-def thumb_one_vid(file: Path):
+def thumb_vid(file: Path):
     VID_FRAMES = 9
 
     file = file.resolve()
@@ -248,8 +248,8 @@ def thumb_one_vid(file: Path):
 
         if duration_text:
             font = cv2.FONT_HERSHEY_SIMPLEX
-            font_scale = cell_width // 180
-            thickness = cell_width // 60
+            font_scale = max(2, cell_width // 180)
+            thickness = max(2, cell_width // 60)
             x, y = cell_width // 6, cell_height // 2
 
             cv2.putText(
@@ -259,7 +259,7 @@ def thumb_one_vid(file: Path):
                 font,
                 font_scale,
                 (0, 0, 0),
-                int(thickness * 1.3),
+                max(int(thickness * 1.3), thickness + 2),
                 lineType=cv2.LINE_AA,
             )
             cv2.putText(
@@ -285,7 +285,7 @@ def thumb_one_vid(file: Path):
         vid_logger.error(f"未能从视频中捕获帧: {file}")
 
 
-def convert_vids_to_mp4(path: Path):
+def convert_dir(path: Path):
     target_vids = []
     for root, dirs, files in os.walk(path):
         for file in files:
@@ -293,10 +293,10 @@ def convert_vids_to_mp4(path: Path):
                 target_vids.append(Path(root) / file)
     # ffmpeg自身是多线程的
     for file in target_vids:
-        convert_to_mp4(file)
+        convert_vid(file)
 
 
-def thumb_vids_dir(path: Path):
+def thumb_dir(path: Path):
     target_vids = []
     for root, dirs, files in os.walk(path):
         for file in files:
@@ -304,4 +304,4 @@ def thumb_vids_dir(path: Path):
                 target_vids.append(Path(root) / file)
     # ffmpeg自身是多线程的
     for file in target_vids:
-        thumb_one_vid(file)
+        thumb_vid(file)
