@@ -6,17 +6,19 @@ import sys
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import time
+from utils import VIDEOS, IMAGES
 from logger import get_logger
 
 logger = get_logger(name="OSS", level=logging.DEBUG)
 
 
-def collect_leaf_files(local_dir: Path) -> list[Path]:
+def collect_to_backup(local_dir: Path) -> list[Path]:
     leaf_files = []
 
     def _traverse(path: Path):
         if path.is_file():
-            leaf_files.append(path)
+            if "temp" not in path.parts and path.name.lower().endswith(IMAGES + VIDEOS):
+                leaf_files.append(path)
         else:
             for sub in path.iterdir():
                 _traverse(sub)
@@ -86,15 +88,14 @@ class Uploader(MAG):
                     logger.error(f"[{local_path.name}] gives up uploading")
 
     def upload_dir(self, local_dir: Path):
-        files_to_upload = collect_leaf_files(local_dir)
-        logger.info(f"Ready to Upload {len(files_to_upload)} files parallel")
-        time.sleep(4)
+        files_to_upload = collect_to_backup(local_dir)
         with ThreadPoolExecutor(max_workers=32) as executor:
             futures = [
                 executor.submit(self.upload_file, file) for file in files_to_upload
             ]
             for future in as_completed(futures):
                 future.result()
+        logger.info(f"Finished uploading {len(files_to_upload)} files")
 
 
 def backup_dir(path: Path):

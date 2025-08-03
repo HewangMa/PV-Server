@@ -101,7 +101,9 @@ def hash_pwd(key: str) -> str:
     return hash_object.hexdigest()
 
 
-def remove_existing_thumb(dir: Path):
+
+
+def remove_existing_vids_thumb(dir: Path):
     for root, dirs, files in os.walk(dir):
         for file in files:
             path = Path(root) / file
@@ -114,3 +116,25 @@ def remove_existing_thumb(dir: Path):
                 if thumb.exists():
                     logger.info(f"Removing existing thumbnail: {thumb}")
                     send2trash.send2trash(thumb)
+
+
+def remove_existing_pics_thumb(dir: Path):
+    for root, dirs, files in os.walk(dir):
+        for file in files:
+            path = Path(root) / file
+            if path.name.lower().endswith(IMAGES):
+                dir = Path(root)
+                thumb = dir.parent / (dir.name + ".jpg")
+                if thumb.exists():
+                    logger.info(f"Removing existing thumbnail: {thumb}")
+                    send2trash.send2trash(thumb)
+                thumb = dir.parent / (dir.name + "_thumb.jpg")
+                if thumb.exists():
+                    logger.info(f"Removing existing thumbnail: {thumb}")
+                    send2trash.send2trash(thumb)
+                break  # 每个目录只处理一次
+
+
+if __name__ == "__main__":
+    remove_existing_pics_thumb(Path("/home/hewangma/projects/PV-Server/resource"))
+    remove_existing_vids_thumb(Path("/home/hewangma/projects/PV-Server/resource"))
