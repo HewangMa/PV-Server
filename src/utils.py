@@ -54,6 +54,16 @@ IMAGES = (
     ".heic",
 )
 
+ZIPS = {
+    ".zip",
+    ".rar",
+    ".7z",
+    ".tar",
+    ".gz",
+    ".bz2",
+    ".xz",
+}
+
 
 def port_occupied(port=8017):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -99,8 +109,6 @@ def hash_pwd(key: str) -> str:
     hash_object = hashlib.sha256()
     hash_object.update(key.encode("utf-8"))
     return hash_object.hexdigest()
-
-
 
 
 def remove_existing_vids_thumb(dir: Path):

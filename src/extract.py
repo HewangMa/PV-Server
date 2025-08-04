@@ -2,8 +2,11 @@ import subprocess
 from pathlib import Path
 import sys
 from logger import get_logger
+from utils import ZIPS
+import os
 
 logger = get_logger("extractor", level="INFO")
+not_unrar = ["temp"]
 
 
 def extract_rar(rar_path: Path, password: str):
@@ -34,10 +37,14 @@ def batch_extract(dir_path: Path, password: str):
         logger.warning(f"目录不存在：{dir_path}")
         sys.exit(1)
 
-    rar_files = list(dir_path.rglob("*.rar"))
-    if not rar_files:
-        logger.error("❌ 未找到任何 .rar 文件")
-        return
+    rar_files = []
+    for root, _, files in os.walk(dir_path):
+        for file in files:
+            path = Path(root) / file
+            if path.suffix.lower() in ZIPS and all(
+                n not in path.parts for n in not_unrar
+            ):
+                rar_files.append(path)
 
     logger.info(f"共找到 {len(rar_files)} 个 .rar 文件，开始解压...\n")
     for rar_file in rar_files:

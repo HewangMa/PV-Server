@@ -11,13 +11,20 @@ from logger import get_logger
 
 logger = get_logger(name="OSS", level=logging.DEBUG)
 
+not_backups = [
+    "not-backup",
+    "temp",
+]
+
 
 def collect_to_backup(local_dir: Path) -> list[Path]:
     leaf_files = []
 
     def _traverse(path: Path):
         if path.is_file():
-            if "temp" not in path.parts and path.name.lower().endswith(IMAGES + VIDEOS):
+            if all(
+                n not in path.parts for n in not_backups
+            ) and path.name.lower().endswith(IMAGES + VIDEOS):
                 leaf_files.append(path)
         else:
             for sub in path.iterdir():

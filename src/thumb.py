@@ -19,6 +19,10 @@ from concurrent.futures import ProcessPoolExecutor
 
 pic_logger = get_logger("pics_thumb", level="DEBUG")
 
+not_thumb = [
+    "temp",
+]
+
 
 def thumb_one_pics_dir(dir: Path):
     if not dir.is_dir():
@@ -109,11 +113,8 @@ def thumb_one_pics_dir(dir: Path):
 def thumb_pics_dirs(path: Path):
     leaf_dirs = []
     for root, dirs, _ in os.walk(path):
-        if len(dirs) == 0 and "temp" not in Path(root).parts:
+        if len(dirs) == 0 and all(n not in Path(root).parts for n in not_thumb):
             leaf_dirs.append(Path(root))
-    if not leaf_dirs:
-        pic_logger.warning(f"没有找到叶子目录: {path}")
-        return
     with ProcessPoolExecutor(max_workers=8) as executor:
         executor.map(thumb_one_pics_dir, leaf_dirs)
 
@@ -289,7 +290,9 @@ def convert_dir(path: Path):
     target_vids = []
     for root, dirs, files in os.walk(path):
         for file in files:
-            if file.lower().endswith(VIDEOS) and "temp" not in Path(root).parts:
+            if file.lower().endswith(VIDEOS) and all(
+                n not in Path(root).parts for n in not_thumb
+            ):
                 target_vids.append(Path(root) / file)
     # ffmpeg自身是多线程的
     for file in target_vids:
@@ -300,7 +303,9 @@ def thumb_dir(path: Path):
     target_vids = []
     for root, dirs, files in os.walk(path):
         for file in files:
-            if file.lower().endswith(VIDEOS) and "temp" not in Path(root).parts:
+            if file.lower().endswith(VIDEOS) and all(
+                n not in Path(root).parts for n in not_thumb
+            ):
                 target_vids.append(Path(root) / file)
     # ffmpeg自身是多线程的
     for file in target_vids:
