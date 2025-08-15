@@ -11,27 +11,27 @@ from logger import get_logger
 
 logger = get_logger(name="OSS", level=logging.DEBUG)
 
-not_backups = [
-    "not-backup",
-    "temp",
-]
-
 
 def collect_to_backup(local_dir: Path) -> list[Path]:
+    not_backup_files = []
     leaf_files = []
 
     def _traverse(path: Path):
         if path.is_file():
-            if all(
-                n not in path.parts for n in not_backups
-            ) and path.name.lower().endswith(IMAGES + VIDEOS):
-                leaf_files.append(path)
+            if "temp" not in path.parts:
+                if (
+                    path.name.lower().endswith(IMAGES + VIDEOS)
+                    and "_thumb" not in path.name
+                ):
+                    leaf_files.append(path)
+                else:
+                    not_backup_files.append(path)
         else:
             for sub in path.iterdir():
                 _traverse(sub)
 
     _traverse(local_dir)
-    return leaf_files
+    return leaf_files, not_backup_files
 
 
 MAX_RETRIES = 3
@@ -95,7 +95,7 @@ class Uploader(MAG):
                     logger.error(f"[{local_path.name}] gives up uploading")
 
     def upload_dir(self, local_dir: Path):
-        files_to_upload = collect_to_backup(local_dir)
+        files_to_upload, _ = collect_to_backup(local_dir)
         with ThreadPoolExecutor(max_workers=32) as executor:
             futures = [
                 executor.submit(self.upload_file, file) for file in files_to_upload

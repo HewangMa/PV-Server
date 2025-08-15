@@ -8,33 +8,20 @@ from PIL import Image, ImageDraw, ImageFont
 import random
 import numpy as np
 import subprocess
-from utils import (
-    is_vertical,
-    natural_sort,
-    is_horizontal,
-    VIDEOS,
-)
+from utils import is_vertical, natural_sort, is_horizontal, VIDEOS, get_thumb
 from concurrent.futures import ProcessPoolExecutor
 
 
 pic_logger = get_logger("pics_thumb", level="DEBUG")
-
-not_thumb = [
-    "temp",
-]
 
 
 def thumb_one_pics_dir(dir: Path):
     if not dir.is_dir():
         pic_logger.error(f"路径不是一个目录: {dir}")
         return
-    out_path = dir.parent / f"{dir.name}.jpg"
-    if out_path.exists():
-        send2trash.send2trash(out_path)
-
-    out_path = dir.parent / f"{dir.name}_thumb.jpg"
-    if out_path.exists():
-        pic_logger.warning(f"缩略图已存在: {out_path}")
+    thumb = get_thumb(dir)
+    if thumb.exists():
+        pic_logger.warning(f"缩略图已存在: {thumb}")
         return
 
     vertical_pics = [p for p in dir.iterdir() if p.is_file() and is_vertical(p)]
@@ -105,15 +92,15 @@ def thumb_one_pics_dir(dir: Path):
     draw.text((x + black_width, y + black_width), text, font=font, fill="black")
     draw.text((x, y), text, font=font, fill="white")
 
-    result_img.save(out_path, quality=100)
-    pic_logger.info(f"缩略图已保存: {out_path}")
+    result_img.save(thumb, quality=100)
+    pic_logger.info(f"缩略图已保存: {thumb}")
     time.sleep(0.5)
 
 
 def thumb_pics_dirs(path: Path):
     leaf_dirs = []
     for root, dirs, _ in os.walk(path):
-        if len(dirs) == 0 and all(n not in Path(root).parts for n in not_thumb):
+        if len(dirs) == 0 and "temp" not in Path(root).parts:
             leaf_dirs.append(Path(root))
     with ProcessPoolExecutor(max_workers=8) as executor:
         executor.map(thumb_one_pics_dir, leaf_dirs)
@@ -178,7 +165,7 @@ def thumb_vid(file: Path):
     file = file.resolve()
     if not file.name.lower().endswith(VIDEOS):
         return
-    thumb_path = file.parent / (file.stem + "_thumb.jpg")
+    thumb_path = get_thumb(file)
     if thumb_path.exists():
         vid_logger.warning(f"缩略图已存在: {thumb_path}")
         return
@@ -290,9 +277,7 @@ def convert_dir(path: Path):
     target_vids = []
     for root, dirs, files in os.walk(path):
         for file in files:
-            if file.lower().endswith(VIDEOS) and all(
-                n not in Path(root).parts for n in not_thumb
-            ):
+            if file.lower().endswith(VIDEOS) and "temp" not in Path(root).parts:
                 target_vids.append(Path(root) / file)
     # ffmpeg自身是多线程的
     for file in target_vids:
@@ -303,9 +288,7 @@ def thumb_dir(path: Path):
     target_vids = []
     for root, dirs, files in os.walk(path):
         for file in files:
-            if file.lower().endswith(VIDEOS) and all(
-                n not in Path(root).parts for n in not_thumb
-            ):
+            if file.lower().endswith(VIDEOS) and "temp" not in Path(root).parts:
                 target_vids.append(Path(root) / file)
     # ffmpeg自身是多线程的
     for file in target_vids:

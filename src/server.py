@@ -12,15 +12,27 @@ from pathlib import Path
 import random
 import sys
 from logger import get_logger
-from utils import natural_sort, hash_pwd, port_occupied, lan_ip, IMAGES, VIDEOS
+from utils import (
+    natural_sort,
+    hash_pwd,
+    port_occupied,
+    lan_ip,
+    IMAGES,
+    VIDEOS,
+    get_thumb,
+)
 
 logger = get_logger("app", level="DEBUG")
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
 PROJECT_DIR = Path(os.path.dirname(__file__)).parent
 RESOURCE_DIR = PROJECT_DIR / "resource"
-BACKGROUND_DIR = RESOURCE_DIR / "background"
-
+BG_DIR = RESOURCE_DIR / "background"
+BG_LIST = [
+    str(f.relative_to(RESOURCE_DIR))
+    for f in BG_DIR.iterdir()
+    if f.is_file() and f.name.lower().endswith(IMAGES)
+]
 
 # 密码
 PWD_HASH = "34f681da8fa0841964a9ab7798430be9bc50be2d8e64beeaa00805e3d6c1682f"
@@ -34,30 +46,20 @@ def resource(filename):
 
 @app.route("/", methods=["GET", "POST"])
 def index():
-    bg_images = [
-        f
-        for f in BACKGROUND_DIR.iterdir()
-        if f.is_file() and f.name.lower().endswith(IMAGES)
-    ]
-    bg_list = [str(f.relative_to(RESOURCE_DIR)) for f in bg_images]
-
+    bg_img = random.choice(BG_LIST)
     if request.method == "POST":
         password = request.form["password"]
         if hash_pwd(password.lower()) == PWD_HASH:
             session["authenticated"] = True
             return redirect(url_for("browse"))
         else:
-            # 随机选一张图片作为初始背景
-            bg_img = random.choice(bg_list) if bg_list else None
             return render_template(
                 "index.html",
                 error="密码错误，请重新输入。",
-                bg_list=bg_list,
+                bg_list=BG_LIST,
                 bg_img=bg_img,
             )
-    # GET 请求
-    bg_img = random.choice(bg_list) if bg_list else None
-    return render_template("index.html", bg_list=bg_list, bg_img=bg_img)
+    return render_template("index.html", bg_list=BG_LIST, bg_img=bg_img)
 
 
 @app.route("/browse")
@@ -78,8 +80,9 @@ def browse():
         for _path in target_path.iterdir():
             name = _path.name
             rel_path = str(_path.relative_to(RESOURCE_DIR))
+            thumb = get_thumb(_path)
+            preview = images.get(thumb.stem)
             if _path.is_dir():
-                preview = images.get(_path.name) or images.get(_path.name + "_thumb")
                 items.append(
                     {
                         "type": "dir",
@@ -89,7 +92,6 @@ def browse():
                     }
                 )
             elif name.lower().endswith(VIDEOS):
-                preview = images.get(_path.stem) or images.get(_path.stem + "_thumb")
                 items.append(
                     {
                         "type": "video",
@@ -109,20 +111,12 @@ def browse():
             )
         )
 
-        # 背景图片逻辑
-        bg_dir = BACKGROUND_DIR
-        bg_images = [
-            f
-            for f in bg_dir.iterdir()
-            if f.is_file() and f.name.lower().endswith(IMAGES)
-        ]
-        bg_list = [str(f.relative_to(RESOURCE_DIR)) for f in bg_images]
-        bg_img = random.choice(bg_list) if bg_list else None
+        bg_img = random.choice(BG_LIST)
         return render_template(
             "browse.html",
             req_path=req_path,
             items=items,
-            bg_list=bg_list,
+            bg_list=BG_LIST,
             bg_img=bg_img,
         )
     else:
@@ -149,7 +143,14 @@ def images():
                 )
 
         image_items.sort(key=lambda x: natural_sort(x["name"]))
-        return render_template("images.html", req_path=req_path, items=image_items)
+        bg_img = random.choice(BG_LIST)
+        return render_template(
+            "images.html",
+            req_path=req_path,
+            items=image_items,
+            bg_list=BG_LIST,
+            bg_img=bg_img,
+        )
     else:
         return redirect(url_for("index"))
 

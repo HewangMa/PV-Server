@@ -16,7 +16,12 @@
   <body>
     <div class="location-tip">UR AT {{ req_path if req_path else 'ROOT' }}</div>
     <div class="images-grid">
-      {% for item in items %}
+      {% set ns = namespace(last_prefix=None) %} {% for item in items %} {% set
+      current_prefix = item.name[0:2] %} {% if ns.last_prefix is not none and
+      current_prefix != ns.last_prefix and current_prefix in ['a_', 'b_', 'c_']
+      %}
+      <hr class="divider" />
+      {% endif %} {% set ns.last_prefix = current_prefix %}
       <img
         src="{{ url_for('resource', filename=item.path) }}"
         alt="{{ item.name }}"

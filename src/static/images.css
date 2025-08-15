@@ -21,3 +21,14 @@ body {
   background: none;
   display: block;
 }
+.divider {
+  /* 占满一整行（Grid/Flex 双兼容） */
+  flex-basis: 100%;
+  width: 100%;
+  grid-column: 1 / -1;
+
+  /* 分割线样式 */
+  border: none;
+  border-top: 60px solid rgb(251, 255, 0);
+  margin-top: 60px 0;
+}

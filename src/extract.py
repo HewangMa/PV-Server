@@ -6,7 +6,6 @@ from utils import ZIPS
 import os
 
 logger = get_logger("extractor", level="INFO")
-not_unrar = ["temp"]
 
 
 def extract_rar(rar_path: Path, password: str):
@@ -41,9 +40,7 @@ def batch_extract(dir_path: Path, password: str):
     for root, _, files in os.walk(dir_path):
         for file in files:
             path = Path(root) / file
-            if path.suffix.lower() in ZIPS and all(
-                n not in path.parts for n in not_unrar
-            ):
+            if path.suffix.lower() in ZIPS and "temp" not in path.parts:
                 rar_files.append(path)
 
     logger.info(f"共找到 {len(rar_files)} 个 .rar 文件，开始解压...\n")

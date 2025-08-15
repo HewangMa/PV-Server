@@ -7,6 +7,7 @@ import os
 import hashlib
 import socket
 
+
 logger = get_logger("utils", level="DEBUG")
 
 # 视频扩展名
@@ -54,20 +55,19 @@ IMAGES = (
     ".heic",
 )
 
-ZIPS = {
-    ".zip",
-    ".rar",
-    ".7z",
-    ".tar",
-    ".gz",
-    ".bz2",
-    ".xz",
-}
+ZIPS = (".zip", ".rar", ".7z", ".tar", ".gz", ".bz2", ".xz")
 
 
 def port_occupied(port=8017):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         return s.connect_ex(("localhost", port)) == 0
+
+
+def get_thumb(path: Path):
+    name = path.name if path.is_dir() else path.stem
+    while name.startswith(("a_", "b_", "c_")):
+        name = name[2:]
+    return path.parent / f"{name}_thumb.jpg"
 
 
 def lan_ip():
@@ -84,7 +84,7 @@ def lan_ip():
 def is_vertical(img_path: Path):
     try:
         with Image.open(img_path) as img:
-            return img.height > img.width
+            return img.height >= img.width
     except:
         return False
 
@@ -116,11 +116,7 @@ def remove_existing_vids_thumb(dir: Path):
         for file in files:
             path = Path(root) / file
             if path.name.lower().endswith(VIDEOS):
-                thumb = Path(root) / (path.stem + "_thumb.jpg")
-                if thumb.exists():
-                    logger.info(f"Removing existing thumbnail: {thumb}")
-                    send2trash.send2trash(thumb)
-                thumb = Path(root) / (path.stem + ".jpg")
+                thumb = get_thumb(path)
                 if thumb.exists():
                     logger.info(f"Removing existing thumbnail: {thumb}")
                     send2trash.send2trash(thumb)
@@ -132,11 +128,7 @@ def remove_existing_pics_thumb(dir: Path):
             path = Path(root) / file
             if path.name.lower().endswith(IMAGES):
                 dir = Path(root)
-                thumb = dir.parent / (dir.name + ".jpg")
-                if thumb.exists():
-                    logger.info(f"Removing existing thumbnail: {thumb}")
-                    send2trash.send2trash(thumb)
-                thumb = dir.parent / (dir.name + "_thumb.jpg")
+                thumb = get_thumb(dir)
                 if thumb.exists():
                     logger.info(f"Removing existing thumbnail: {thumb}")
                     send2trash.send2trash(thumb)
@@ -144,5 +136,6 @@ def remove_existing_pics_thumb(dir: Path):
 
 
 if __name__ == "__main__":
-    remove_existing_pics_thumb(Path("/home/hewangma/projects/PV-Server/resource"))
-    remove_existing_vids_thumb(Path("/home/hewangma/projects/PV-Server/resource"))
+    path = Path("/media/hewangma/resource")
+    remove_existing_pics_thumb(path)
+    remove_existing_vids_thumb(path)
