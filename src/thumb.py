@@ -1,15 +1,15 @@
-import time
-import cv2
 import os
+import cv2
+import time
+import random
 import send2trash
+import subprocess
+import numpy as np
 from pathlib import Path
 from logger import get_logger
 from PIL import Image, ImageDraw, ImageFont
-import random
-import numpy as np
-import subprocess
-from utils import is_vertical, natural_sort, is_horizontal, VIDEOS, get_thumb
 from concurrent.futures import ProcessPoolExecutor
+from utils import VIDEOS, get_thumb, is_vertical, natural_sort, is_horizontal
 
 
 pic_logger = get_logger("pics_thumb", level="DEBUG")
@@ -293,3 +293,7 @@ def thumb_dir(path: Path):
     # ffmpeg自身是多线程的
     for file in target_vids:
         thumb_vid(file)
+
+
+if __name__ == "__main__":
+    thumb_dir(Path("/home/hewangma/projects/PV-Server/resource/temp/new/百色试看"))

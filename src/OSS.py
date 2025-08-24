@@ -1,13 +1,13 @@
-import alibabacloud_oss_v2 as oss
-from pprint import pprint
-from collections import defaultdict
-import logging
 import sys
-from pathlib import Path
-from concurrent.futures import ThreadPoolExecutor, as_completed
 import time
-from utils import VIDEOS, IMAGES
+import logging
+from pathlib import Path
+from pprint import pprint
 from logger import get_logger
+from utils import IMAGES, VIDEOS
+import alibabacloud_oss_v2 as oss
+from collections import defaultdict
+from concurrent.futures import as_completed, ThreadPoolExecutor
 
 logger = get_logger(name="OSS", level=logging.DEBUG)
 

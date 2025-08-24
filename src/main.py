@@ -1,13 +1,13 @@
 import argparse
 from pathlib import Path
-from logger import get_logger
-from extract import batch_extract
-from server import start_server
-from cat_vids import cat_dirs
-from thumb import thumb_pics_dirs, thumb_dir, convert_dir
-from utils import remove_existing_vids_thumb, remove_existing_pics_thumb
 from OSS import backup_dir
+from logger import get_logger
+from cat_vids import cat_dirs
+from server import start_server
+from extract import batch_extract
 from classifier import classifier_pics_dirs
+from thumb import thumb_dir, convert_dir, thumb_pics_dirs
+from utils import remove_existing_pics_thumb, remove_existing_vids_thumb
 
 logger = get_logger("main", level="DEBUG")
 
@@ -48,8 +48,13 @@ def main():
     parser_backup.add_argument("-p", "--path", type=str, required=True, help="目标路径")
 
     # ===== classify 子命令 =====
-    parser_clean = subparsers.add_parser("classify", help="分类图片文件夹")
-    parser_clean.add_argument("-p", "--path", type=str, required=True, help="目标路径")
+    parser_classify = subparsers.add_parser("classify", help="分类图片文件夹")
+    parser_classify.add_argument(
+        "-p", "--path", type=str, required=True, help="目标路径"
+    )
+    parser_classify.add_argument(
+        "-remove", action="store_true", help="是否删除已存在的分类"
+    )
 
     args = parser.parse_args()
 
@@ -80,7 +85,7 @@ def main():
         backup_dir(Path(args.path).resolve())
 
     elif args.command == "classify":
-        classifier_pics_dirs(Path(args.path).resolve())
+        classifier_pics_dirs(Path(args.path).resolve(), args.remove)
 
 
 if __name__ == "__main__":

@@ -1,7 +1,7 @@
-import logging
 import sys
-from logging.handlers import RotatingFileHandler
+import logging
 from pathlib import Path
+from logging.handlers import RotatingFileHandler
 
 # 彩色输出 ANSI 码
 COLOR_RESET = "\033[0m"

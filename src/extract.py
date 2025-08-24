@@ -1,9 +1,9 @@
-import subprocess
-from pathlib import Path
-import sys
-from logger import get_logger
-from utils import ZIPS
 import os
+import sys
+import subprocess
+from utils import ZIPS
+from pathlib import Path
+from logger import get_logger
 
 logger = get_logger("extractor", level="INFO")
 
@@ -40,7 +40,8 @@ def batch_extract(dir_path: Path, password: str):
     for root, _, files in os.walk(dir_path):
         for file in files:
             path = Path(root) / file
-            if path.suffix.lower() in ZIPS and "temp" not in path.parts:
+            # if path.suffix.lower() in ZIPS and "temp" not in path.parts:
+            if path.suffix.lower() in ZIPS:
                 rar_files.append(path)
 
     logger.info(f"共找到 {len(rar_files)} 个 .rar 文件，开始解压...\n")

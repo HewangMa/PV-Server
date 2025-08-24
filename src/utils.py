@@ -1,12 +1,15 @@
-from pathlib import Path
-from logger import get_logger
-from PIL import Image
-import send2trash
-import re
 import os
-import hashlib
+import re
+import shutil
 import socket
-
+import hashlib
+import send2trash
+import subprocess
+from PIL import Image
+from logger import get_logger
+from pathlib import Path
+from PIL.ExifTags import TAGS
+from datetime import datetime
 
 logger = get_logger("utils", level="DEBUG")
 
@@ -135,7 +138,83 @@ def remove_existing_pics_thumb(dir: Path):
                 break  # 每个目录只处理一次
 
 
+def get_file_time(file: Path):
+    def re_parse_date(file: Path):
+        if file.name.endswith(VIDEOS):
+            pattern = re.compile(r"VID_(\d{8})_\w+\.mp4$", re.IGNORECASE)
+            match = pattern.match(file.name)
+            if match:
+                return match.group(1)
+        elif file.name.endswith(IMAGES):
+            pattern = re.compile(r".?(20\d{6})\d?", re.IGNORECASE)
+            match = pattern.search(file.name)
+            if match:
+                return match.group(1)
+        return None
+
+    def exif_parse_date(file: Path):
+        if not file.name.endswith(IMAGES):
+            return None
+        try:
+            img = Image.open(file)
+            exif = img._getexif()
+            if not exif:
+                return None
+            for tag, value in exif.items():
+                tag_name = TAGS.get(tag, tag)
+                if tag_name == "DateTimeOriginal":
+                    return datetime.strptime(value, "%Y:%m:%d %H:%M:%S").strftime(
+                        "%Y%m%d"
+                    )
+        except Exception as e:
+            return None
+        return None
+
+    def ffprobe_parse_date(file: Path):
+        if not file.name.endswith(VIDEOS):
+            return None
+        try:
+            cmd = [
+                "ffprobe",
+                "-v",
+                "error",
+                "-select_streams",
+                "v:0",
+                "-show_entries",
+                "format_tags=creation_time",
+                "-of",
+                "default=noprint_wrappers=1:nokey=1",
+                str(file),
+            ]
+            output = (
+                subprocess.check_output(cmd, stderr=subprocess.DEVNULL).decode().strip()
+            )
+            if output:
+                try:
+                    dt = datetime.fromisoformat(output.replace("Z", "+00:00"))
+                    return dt.strftime("%Y%m%d")
+                except Exception:
+                    logger.info(f"err {e} for {file}")
+                    return output[:10].replace("-", "")
+        except Exception as e:
+            logger.info(f"err {e} for {file}")
+            return None
+        return None
+
+    return re_parse_date(file) or exif_parse_date(file) or ffprobe_parse_date(file)
+
+
+def move_to_subdir(src_dir: Path):
+    dst_dir = src_dir
+    for file in src_dir.iterdir():
+        if file.is_file():
+            date_str = get_file_time(file)
+            if date_str:
+                target_dir = dst_dir / date_str
+                target_dir.mkdir(parents=True, exist_ok=True)
+                shutil.move(str(file), target_dir / file.name)
+                logger.info(f"Moved {file.name} -> {target_dir}/")
+
+
 if __name__ == "__main__":
-    path = Path("/media/hewangma/resource")
-    remove_existing_pics_thumb(path)
-    remove_existing_vids_thumb(path)
+    move_to_subdir(Path("/home/hewangma/projects/PV-Server/resource/fj/vids"))

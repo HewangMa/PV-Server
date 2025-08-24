@@ -1,25 +1,25 @@
-from flask import (
-    Flask,
-    render_template,
-    request,
-    redirect,
-    url_for,
-    session,
-    send_from_directory,
-)
 import os
-from pathlib import Path
-import random
 import sys
+import random
+from pathlib import Path
 from logger import get_logger
 from utils import (
-    natural_sort,
-    hash_pwd,
-    port_occupied,
-    lan_ip,
     IMAGES,
     VIDEOS,
+    lan_ip,
+    hash_pwd,
     get_thumb,
+    natural_sort,
+    port_occupied,
+)
+from flask import (
+    Flask,
+    request,
+    session,
+    url_for,
+    redirect,
+    render_template,
+    send_from_directory,
 )
 
 logger = get_logger("app", level="DEBUG")

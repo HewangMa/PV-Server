@@ -1,8 +1,8 @@
 import os
 import subprocess
+from thumb import convert_vid
 from logger import get_logger
 from utils import VIDEOS, natural_sort
-from thumb import convert_vid
 
 logger = get_logger("cat_vids", level="DEBUG")
 
