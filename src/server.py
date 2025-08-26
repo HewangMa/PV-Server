@@ -46,7 +46,6 @@ def resource(filename):
 
 @app.route("/", methods=["GET", "POST"])
 def index():
-    bg_img = random.choice(BG_LIST)
     if request.method == "POST":
         password = request.form["password"]
         if hash_pwd(password.lower()) == PWD_HASH:
@@ -56,10 +55,10 @@ def index():
             return render_template(
                 "index.html",
                 error="密码错误，请重新输入。",
-                bg_list=BG_LIST,
-                bg_img=bg_img,
+                bg_list=None,
+                bg_img=None,
             )
-    return render_template("index.html", bg_list=BG_LIST, bg_img=bg_img)
+    return render_template("index.html", bg_list=None, bg_img=None)
 
 
 @app.route("/browse")
@@ -125,34 +124,50 @@ def browse():
 
 @app.route("/images")
 def images():
-    if session.get("authenticated"):
-        req_path = request.args.get("path", "")
-        target_path = Path(RESOURCE_DIR) / req_path
-        if not target_path.exists() or not target_path.is_dir():
-            return "目录不存在", 404
-
-        image_items = []
-        for item in target_path.iterdir():
-            if item.is_file() and item.name.lower().endswith(IMAGES):
-                image_items.append(
-                    {
-                        "type": "image",
-                        "name": item.name,
-                        "path": str(item.relative_to(RESOURCE_DIR)),
-                    }
-                )
-
-        image_items.sort(key=lambda x: natural_sort(x["name"]))
-        bg_img = random.choice(BG_LIST)
-        return render_template(
-            "images.html",
-            req_path=req_path,
-            items=image_items,
-            bg_list=BG_LIST,
-            bg_img=bg_img,
-        )
-    else:
+    if not session.get("authenticated"):
         return redirect(url_for("index"))
+
+    req_path = request.args.get("path", "")
+    target_path = Path(RESOURCE_DIR) / req_path
+    if not target_path.exists() or not target_path.is_dir():
+        return "目录不存在", 404
+
+    groups = {
+        "a_": [],
+        "b_": [],
+        "c_": [],
+        "other": [],
+    }
+
+    for item in target_path.iterdir():
+        if item.is_file() and item.name.lower().endswith(IMAGES):
+            img = {
+                "type": "image",
+                "name": item.name,
+                "path": str(item.relative_to(RESOURCE_DIR)),
+            }
+            prefix = img["name"][:2]
+            if prefix in groups:
+                groups[prefix].append(img)
+            else:
+                groups["other"].append(img)
+
+    group_classes = {
+        "a_": "group-a",
+        "b_": "group-b",
+        "c_": "group-c",
+        "other": "group-other",
+    }
+
+    bg_img = random.choice(BG_LIST)
+    return render_template(
+        "images.html",
+        req_path=req_path,
+        groups=groups,
+        group_classes=group_classes,
+        bg_list=BG_LIST,
+        bg_img=bg_img,
+    )
 
 
 @app.route("/logout")

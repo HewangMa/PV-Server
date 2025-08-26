@@ -7,28 +7,39 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
   width: 100%;
   max-width: 900px;
   margin: 0 auto;
 }
-.images-grid img {
+
+.img-wrapper {
   width: 100%;
   max-width: 900px;
-  height: auto;
-  border: none;
-  box-shadow: none;
-  background: none;
+  border-left: 7px solid transparent;
+}
+
+.img-wrapper img {
+  width: 100%;
   display: block;
 }
-.divider {
-  /* 占满一整行（Grid/Flex 双兼容） */
-  flex-basis: 100%;
-  width: 100%;
-  grid-column: 1 / -1;
 
-  /* 分割线样式 */
+.group-a {
+  border-left: 7px solid #69ff3f;
+}
+.group-b {
+  border-left: 7px solid #f74def;
+}
+.group-c {
+  border-left: 7px solid #ffe560;
+}
+.group-other {
+  border-left: 7px solid #3bfff5;
+}
+
+.divider {
+  width: 100%;
+  height: 60px;
   border: none;
-  border-top: 60px solid rgb(251, 255, 0);
-  margin-top: 60px 0;
+  margin: 0;
+  background: transparent;
 }

@@ -115,17 +115,21 @@ def hash_pwd(key: str) -> str:
 
 
 def remove_existing_vids_thumb(dir: Path):
+    cnt = 0
     for root, dirs, files in os.walk(dir):
         for file in files:
             path = Path(root) / file
             if path.name.lower().endswith(VIDEOS):
                 thumb = get_thumb(path)
                 if thumb.exists():
+                    cnt += 1
                     logger.info(f"Removing existing thumbnail: {thumb}")
                     send2trash.send2trash(thumb)
+    logger.info(f"Removed {cnt} thumbs")
 
 
 def remove_existing_pics_thumb(dir: Path):
+    cnt = 0
     for root, dirs, files in os.walk(dir):
         for file in files:
             path = Path(root) / file
@@ -133,9 +137,11 @@ def remove_existing_pics_thumb(dir: Path):
                 dir = Path(root)
                 thumb = get_thumb(dir)
                 if thumb.exists():
+                    cnt += 1
                     logger.info(f"Removing existing thumbnail: {thumb}")
                     send2trash.send2trash(thumb)
                 break  # 每个目录只处理一次
+    logger.info(f"Removed {cnt} thumbs")
 
 
 def get_file_time(file: Path):
@@ -217,4 +223,6 @@ def move_to_subdir(src_dir: Path):
 
 
 if __name__ == "__main__":
-    move_to_subdir(Path("/home/hewangma/projects/PV-Server/resource/fj/vids"))
+    path = Path("/home/hewangma/projects/PV-Server/resource/vids/百色试看")
+    # move_to_subdir(Path(""))
+    remove_existing_vids_thumb(path)
