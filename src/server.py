@@ -151,7 +151,8 @@ def images():
                 groups[prefix].append(img)
             else:
                 groups["other"].append(img)
-
+    for _, items in groups.items():
+        items.sort(key=lambda x: natural_sort(x["name"]))
     group_classes = {
         "a_": "group-a",
         "b_": "group-b",

@@ -5,7 +5,7 @@ from logger import get_logger
 from cat_vids import cat_dirs
 from server import start_server
 from extract import batch_extract
-from classifier import classifier_pics_dirs
+from classifier import Classifier
 from thumb import thumb_dir, convert_dir, thumb_pics_dirs
 from utils import remove_existing_pics_thumb, remove_existing_vids_thumb
 
@@ -85,7 +85,7 @@ def main():
         backup_dir(Path(args.path).resolve())
 
     elif args.command == "classify":
-        classifier_pics_dirs(Path(args.path).resolve(), args.remove)
+        Classifier().classifier_pics_dirs(Path(args.path).resolve(), args.remove)
 
 
 if __name__ == "__main__":
