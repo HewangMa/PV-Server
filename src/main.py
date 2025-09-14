@@ -66,20 +66,23 @@ def main():
     elif args.command == "server":
         start_server()
 
+    # cat 和 convert应该放在一起
     elif args.command == "cat":
         cat_dirs(Path(args.path).resolve())
 
     elif args.command == "p-thumb":
         if args.remove:
             remove_existing_pics_thumb(Path(args.path).resolve())
-        thumb_pics_dirs(Path(args.path).resolve())
+        else:
+            thumb_pics_dirs(Path(args.path).resolve())
 
     elif args.command == "v-thumb":
         if args.remove:
             remove_existing_vids_thumb(Path(args.path).resolve())
-        if args.convert:
-            convert_dir(Path(args.path).resolve())
-        thumb_dir(Path(args.path).resolve())
+        else:
+            if args.convert:
+                convert_dir(Path(args.path).resolve())
+            thumb_dir(Path(args.path).resolve())
 
     elif args.command == "backup":
         backup_dir(Path(args.path).resolve())

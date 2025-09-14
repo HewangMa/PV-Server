@@ -132,23 +132,23 @@ def convert_vid(file: Path) -> Path:
     result = subprocess.run(
         [
             "ffmpeg",
+            "-fflags",
+            "+genpts+discardcorrupt",
             "-err_detect",
-            "ignore_err",  # 在读取时忽略损坏帧
-            "-y",  # 覆盖输出
+            "ignore_err",
+            "-y",
             "-i",
-            str(file),  # 输入文件
+            str(file),
             "-vf",
-            "scale=trunc(iw/2)*2:trunc(ih/2)*2",  # 调整宽高为偶数
+            "scale=trunc(iw/2)*2:trunc(ih/2)*2",
             "-c:v",
-            "libx264",  # 视频编码 H.264
+            "libx264",
             "-c:a",
-            "aac",  # 音频编码 AAC
+            "aac",
             "-movflags",
-            "+faststart",  # MP4 优化（可选）
+            "+faststart",
             str(output_path),
-        ],
-        stdout=None,  # 继承父进程
-        stderr=None,  # 继承父进程
+        ]
     )
 
     if result.returncode == 0:
