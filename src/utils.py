@@ -222,7 +222,9 @@ def move_to_subdir(src_dir: Path):
                 logger.info(f"Moved {file.name} -> {target_dir}/")
 
 
-if __name__ == "__main__":
-    path = Path("/home/hewangma/projects/PV-Server/resource/vids/百色试看")
-    # move_to_subdir(Path(""))
-    remove_existing_vids_thumb(path)
+def is_mounted(path: str) -> bool:
+    if path.startswith("/home"):
+        return True  # 假设 /home 总是挂载的
+    with open("/proc/mounts") as f:
+        mounts = [line.split()[1] for line in f]
+    return any(m.startswith("/mnt") for m in mounts)

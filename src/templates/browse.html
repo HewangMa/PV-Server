@@ -26,31 +26,31 @@
         >
         {% if item.preview %}
         <img
-          src="{{ url_for('resource', filename=item.preview) }}"
+          src="{{ url_for('resource', filepath=item.preview) }}"
           alt="预览: {{ item.name }}"
         />
         {% endif %} {% elif item.type == 'video' %} 🎬
         <a
           class="file-link video-link"
-          href="{{ url_for('resource', filename=item.path) }}"
+          href="{{ url_for('resource', filepath=item.path) }}"
           target="_blank"
           >{{ item.name }}</a
         >
         {% if item.preview %}
         <img
-          src="{{ url_for('resource', filename=item.preview) }}"
+          src="{{ url_for('resource', filepath=item.preview) }}"
           alt="预览: {{ item.name }}"
         />
         {% endif %} {% elif item.type == 'file' %} 📄
         <a
           class="file-link"
-          href="{{ url_for('resource', filename=item.path) }}"
+          href="{{ url_for('resource', filepath=item.path) }}"
           target="_blank"
           >{{ item.name }}</a
         >
         {% if item.preview %}
         <img
-          src="{{ url_for('resource', filename=item.preview) }}"
+          src="{{ url_for('resource', filepath=item.preview) }}"
           alt="预览: {{ item.name }}"
         />
         {% endif %} {% endif %}

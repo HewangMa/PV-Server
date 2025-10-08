@@ -11,6 +11,7 @@ from utils import (
     get_thumb,
     natural_sort,
     port_occupied,
+    is_mounted,
 )
 from flask import (
     Flask,
@@ -26,12 +27,28 @@ logger = get_logger("app", level="DEBUG")
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
 PROJECT_DIR = Path(os.path.dirname(__file__)).parent
-RESOURCE_DIR = PROJECT_DIR / "resource"
-BG_DIR = RESOURCE_DIR / "background"
+
+RESOURCE_BASES = [
+    PROJECT_DIR / "resource",
+    Path("/mnt/hewangma/resource"),
+]
+
+
+MENU_ITEMS = [
+    {
+        "type": "dir",
+        "name": path.stem,
+        "path": path,
+        "preview": None,
+    }
+    for path in RESOURCE_BASES
+    if is_mounted(str(path))
+]
+
+
+BG_DIR = PROJECT_DIR / "resource" / "background"
 BG_LIST = [
-    str(f.relative_to(RESOURCE_DIR))
-    for f in BG_DIR.iterdir()
-    if f.is_file() and f.name.lower().endswith(IMAGES)
+    str(f) for f in BG_DIR.iterdir() if f.is_file() and f.name.lower().endswith(IMAGES)
 ]
 
 # 密码
@@ -39,9 +56,9 @@ PWD_HASH = "34f681da8fa0841964a9ab7798430be9bc50be2d8e64beeaa00805e3d6c1682f"
 HINT = "the purple"
 
 
-@app.route("/resource/<path:filename>")
-def resource(filename):
-    return send_from_directory(RESOURCE_DIR, filename)
+@app.route("/resource/<path:filepath>")
+def resource(filepath):
+    return send_from_directory("/", filepath)
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -61,65 +78,88 @@ def index():
     return render_template("index.html", bg_list=None, bg_img=None)
 
 
+def path_is_save(path: Path):
+    if not path.exists():
+        return False
+    for base in RESOURCE_BASES:
+        if path.is_relative_to(base):
+            return True
+    return False
+
+
+def gather_images(path: Path):
+    images = {}
+    for _path in path.iterdir():
+        if _path.is_file() and _path.name.lower().endswith(IMAGES):
+            images[_path.stem] = _path
+    return images
+
+
+def gather_items(path: Path, images: dict = None):
+    items = []
+    for _path in path.iterdir():
+        name = _path.name
+        thumb = get_thumb(_path)
+        preview = images.get(thumb.stem)
+        if _path.is_dir():
+            items.append(
+                {
+                    "type": "dir",
+                    "name": name,
+                    "path": _path,
+                    "preview": preview,
+                }
+            )
+        elif name.lower().endswith(VIDEOS):
+            items.append(
+                {
+                    "type": "video",
+                    "name": name,
+                    "path": _path,
+                    "preview": preview,
+                }
+            )
+    return items
+
+
 @app.route("/browse")
 def browse():
-    if session.get("authenticated"):
-        req_path = request.args.get("path", "")
-        target_path = Path(RESOURCE_DIR) / req_path
-        if not target_path.exists() or not target_path.is_dir():
-            return "目录不存在", 404
-
-        # 收集所有图片
-        images = {}
-        for _path in target_path.iterdir():
-            if _path.is_file() and _path.name.lower().endswith(IMAGES):
-                images[_path.stem] = str(_path.relative_to(RESOURCE_DIR))
-
-        items = []
-        for _path in target_path.iterdir():
-            name = _path.name
-            rel_path = str(_path.relative_to(RESOURCE_DIR))
-            thumb = get_thumb(_path)
-            preview = images.get(thumb.stem)
-            if _path.is_dir():
-                items.append(
-                    {
-                        "type": "dir",
-                        "name": name,
-                        "path": rel_path,
-                        "preview": preview,
-                    }
-                )
-            elif name.lower().endswith(VIDEOS):
-                items.append(
-                    {
-                        "type": "video",
-                        "name": name,
-                        "path": rel_path,
-                        "preview": preview,
-                    }
-                )
-
+    if not session.get("authenticated"):
+        return redirect(url_for("index"))
+    req_path = request.args.get("path", "")
+    target_path = Path(req_path).resolve()
+    bg_img = random.choice(BG_LIST)
+    if not req_path:
+        # 进入目录页
+        return render_template(
+            "browse.html",
+            req_path=None,
+            items=MENU_ITEMS,
+            bg_list=BG_LIST,
+            bg_img=bg_img,
+        )
+    elif path_is_save(target_path):
+        # 进入该路径下的内容
+        images = gather_images(target_path)
+        items = gather_items(target_path, images)
         if not items:
-            return redirect(url_for("images", path=req_path))
-
+            # 该目录下没有视频和子目录，则展示图片页
+            return redirect(url_for("images", path=target_path))
         items.sort(
             key=lambda x: (
                 0 if x["type"] == "video" else 1,
                 natural_sort(x["name"]),
             )
         )
-
-        bg_img = random.choice(BG_LIST)
         return render_template(
             "browse.html",
-            req_path=req_path,
+            req_path=target_path,
             items=items,
             bg_list=BG_LIST,
             bg_img=bg_img,
         )
     else:
-        return redirect(url_for("index"))
+        return "目录不存在", 404
 
 
 @app.route("/images")
@@ -128,8 +168,8 @@ def images():
         return redirect(url_for("index"))
 
     req_path = request.args.get("path", "")
-    target_path = Path(RESOURCE_DIR) / req_path
-    if not target_path.exists() or not target_path.is_dir():
+    target_path = Path(req_path).resolve()
+    if not path_is_save(target_path):
         return "目录不存在", 404
 
     groups = {
@@ -139,12 +179,12 @@ def images():
         "other": [],
     }
 
-    for item in target_path.iterdir():
-        if item.is_file() and item.name.lower().endswith(IMAGES):
+    for image_file in target_path.iterdir():
+        if image_file.is_file() and image_file.name.lower().endswith(IMAGES):
             img = {
                 "type": "image",
-                "name": item.name,
-                "path": str(item.relative_to(RESOURCE_DIR)),
+                "name": image_file.name,
+                "path": image_file,
             }
             prefix = img["name"][:2]
             if prefix in groups:

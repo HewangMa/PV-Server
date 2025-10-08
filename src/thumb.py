@@ -122,9 +122,6 @@ def convert_vid(file: Path) -> Path:
     if not file.is_file() or not file.name.lower().endswith(VIDEOS):
         vid_logger.error(f"文件不是视频格式: {file}")
         return
-    # if file.name.lower().endswith(".mp4"):
-    #     vid_logger.info(f"文件已是MP4格式: {file}")
-    #     return
     ext = file.suffix.strip(".").lower()
     output_path = file.parent / (file.stem + f"_convert_from_{ext}.mp4")
 
@@ -148,6 +145,8 @@ def convert_vid(file: Path) -> Path:
             "-movflags",
             "+faststart",
             str(output_path),
+            "-map_metadata",
+            "0",
         ]
     )
 

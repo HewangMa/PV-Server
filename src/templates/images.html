@@ -19,7 +19,7 @@
       {% for prefix, items in groups.items() %} {% for item in items %}
       <div class="img-wrapper {{ group_classes[prefix] }}">
         <img
-          src="{{ url_for('resource', filename=item.path) }}"
+          src="{{ url_for('resource', filepath=item.path) }}"
           alt="{{ item.name }}"
         />
       </div>
