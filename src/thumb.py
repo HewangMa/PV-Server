@@ -292,7 +292,3 @@ def thumb_dir(path: Path):
     # ffmpeg自身是多线程的
     for file in target_vids:
         thumb_vid(file)
-
-
-if __name__ == "__main__":
-    thumb_dir(Path("/home/hewangma/projects/PV-Server/resource/temp/new/百色试看"))
