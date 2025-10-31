@@ -222,6 +222,41 @@ def move_to_subdir(src_dir: Path):
                 logger.info(f"Moved {file.name} -> {target_dir}/")
 
 
+def flat_dir(src_dir: Path):
+    src_dir = Path(src_dir)
+    counter = 1
+
+    # 先收集所有文件, 包括原有文件
+    files_to_move = []
+    for root, _, files in os.walk(src_dir):
+        for file in files:
+            file_path = Path(root) / file
+            files_to_move.append(file_path)
+
+    # 按顺序重命名并移动
+    for file_path in sorted(files_to_move):
+        ext = file_path.suffix
+        target_path = src_dir / f"{counter}{ext}"
+        while target_path.exists():  # 防止重名冲突
+            counter += 1
+            target_path = src_dir / f"{counter}{ext}"
+        shutil.move(str(file_path), target_path)
+        logger.info(f"Moved {file_path} -> {target_path}")
+        counter += 1
+
+    # 删除空目录
+    for root, dirs, _ in os.walk(src_dir, topdown=False):
+        for d in dirs:
+            dir_path = Path(root) / d
+            try:
+                dir_path.rmdir()
+                logger.info(f"Removed empty directory: {dir_path}")
+            except OSError:
+                pass  # 目录非空（例如系统文件），跳过
+
+    logger.info("✅ Flatten complete.")
+
+
 def is_mounted(path: str) -> bool:
     if path.startswith("/home"):
         return True  # 假设 /home 总是挂载的

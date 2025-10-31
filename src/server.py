@@ -30,7 +30,8 @@ PROJECT_DIR = Path(os.path.dirname(__file__)).parent
 
 RESOURCE_BASES = [
     PROJECT_DIR / "resource",
-    Path("/mnt/hewangma/resource"),
+    Path("/mnt/hewangma1/resource"),  # 待更改到/media目录下
+    Path("/mnt/hewangma2/resource"),
 ]
 
 

@@ -2,8 +2,6 @@ import os
 import cv2
 import time
 import random
-import send2trash
-import subprocess
 import numpy as np
 from pathlib import Path
 from logger import get_logger
@@ -12,23 +10,23 @@ from concurrent.futures import ProcessPoolExecutor
 from utils import VIDEOS, get_thumb, is_vertical, natural_sort, is_horizontal
 
 
-pic_logger = get_logger("pics_thumb", level="DEBUG")
+logger = get_logger("thumb", level="DEBUG")
 
 
 def thumb_one_pics_dir(dir: Path):
     if not dir.is_dir():
-        pic_logger.error(f"路径不是一个目录: {dir}")
+        logger.error(f"路径不是一个目录: {dir}")
         return
     thumb = get_thumb(dir)
     if thumb.exists():
-        pic_logger.warning(f"缩略图已存在: {thumb}")
+        logger.warning(f"缩略图已存在: {thumb}")
         return
 
     vertical_pics = [p for p in dir.iterdir() if p.is_file() and is_vertical(p)]
     horizonal_pics = [p for p in dir.iterdir() if p.is_file() and is_horizontal(p)]
     if len(vertical_pics) > len(horizonal_pics):
         if len(vertical_pics) < 6:
-            pic_logger.warning(f"数量太少，无法生成缩略图: {dir}")
+            logger.warning(f"数量太少，无法生成缩略图: {dir}")
             return
         vertical_pics.sort(key=lambda x: natural_sort(x.name))
         positions = [
@@ -48,7 +46,7 @@ def thumb_one_pics_dir(dir: Path):
         grid_height = cell_height * 3
     else:
         if len(horizonal_pics) < 5:
-            pic_logger.warning(f"数量太少，无法生成缩略图: {dir}")
+            logger.warning(f"数量太少，无法生成缩略图: {dir}")
             return
         horizonal_pics.sort(key=lambda x: natural_sort(x.name))
         positions = [
@@ -93,7 +91,7 @@ def thumb_one_pics_dir(dir: Path):
     draw.text((x, y), text, font=font, fill="white")
 
     result_img.save(thumb, quality=100)
-    pic_logger.info(f"缩略图已保存: {thumb}")
+    logger.info(f"缩略图已保存: {thumb}")
     time.sleep(0.5)
 
 
@@ -106,58 +104,6 @@ def thumb_pics_dirs(path: Path):
         executor.map(thumb_one_pics_dir, leaf_dirs)
 
 
-############## PICS THUMB ##############
-############## PICS THUMB ##############
-############## PICS THUMB ##############
-
-
-############## VIDS THUMB ##############
-############## VIDS THUMB ##############
-############## VIDS THUMB ##############
-vid_logger = get_logger("vids_thumb", level="DEBUG")
-
-
-def convert_vid(file: Path) -> Path:
-    file = file.resolve()
-    if not file.is_file() or not file.name.lower().endswith(VIDEOS):
-        vid_logger.error(f"文件不是视频格式: {file}")
-        return
-    ext = file.suffix.strip(".").lower()
-    output_path = file.parent / (file.stem + f"_convert_from_{ext}.mp4")
-
-    vid_logger.info(f"正在转换 {file} 到 MP4 格式")
-    result = subprocess.run(
-        [
-            "ffmpeg",
-            "-fflags",
-            "+genpts+discardcorrupt",
-            "-err_detect",
-            "ignore_err",
-            "-y",
-            "-i",
-            str(file),
-            "-vf",
-            "scale=trunc(iw/2)*2:trunc(ih/2)*2",
-            "-c:v",
-            "libx264",
-            "-c:a",
-            "aac",
-            "-movflags",
-            "+faststart",
-            str(output_path),
-            "-map_metadata",
-            "0",
-        ]
-    )
-
-    if result.returncode == 0:
-        vid_logger.info(f"转换成功: {file} -> {output_path},已经删除原文件")
-        send2trash.send2trash(file)
-    else:
-        vid_logger.error(f"转换失败: {file}")
-    time.sleep(0.5)
-
-
 def thumb_vid(file: Path):
     VID_FRAMES = 9
 
@@ -166,7 +112,7 @@ def thumb_vid(file: Path):
         return
     thumb_path = get_thumb(file)
     if thumb_path.exists():
-        vid_logger.warning(f"缩略图已存在: {thumb_path}")
+        logger.warning(f"缩略图已存在: {thumb_path}")
         return
 
     def format_time(seconds):
@@ -179,7 +125,7 @@ def thumb_vid(file: Path):
         cap = cv2.VideoCapture(str(vid_path))
 
         if not cap.isOpened():
-            vid_logger.error(f"请检查视频文件格式是否正确 {vid_path}")
+            logger.error(f"请检查视频文件格式是否正确 {vid_path}")
             return [], 0, 0, 0.0
 
         width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -197,7 +143,7 @@ def thumb_vid(file: Path):
             cap.set(cv2.CAP_PROP_POS_FRAMES, target_frame)
             ret, frame = cap.read()
             if not ret:
-                vid_logger.warning(f"{i}th 视频帧获取失败: {vid_path}")
+                logger.warning(f"{i}th 视频帧获取失败: {vid_path}")
                 frame = None
             frames.append(frame)
 
@@ -267,23 +213,12 @@ def thumb_vid(file: Path):
         duration_text = format_time(duration_seconds)
         thumbnail = create_thumb(frames, width // 2, height // 2, duration_text)
         cv2.imwrite(str(thumb_path), thumbnail)
-        vid_logger.info(f"缩略图已保存: {thumb_path}（总时长: {duration_text}）")
+        logger.info(f"缩略图已保存: {thumb_path}（总时长: {duration_text}）")
     else:
-        vid_logger.error(f"未能从视频中捕获帧: {file}")
+        logger.error(f"未能从视频中捕获帧: {file}")
 
 
-def convert_dir(path: Path):
-    target_vids = []
-    for root, dirs, files in os.walk(path):
-        for file in files:
-            if file.lower().endswith(VIDEOS) and "temp" not in Path(root).parts:
-                target_vids.append(Path(root) / file)
-    # ffmpeg自身是多线程的
-    for file in target_vids:
-        convert_vid(file)
-
-
-def thumb_dir(path: Path):
+def thumb_vid_dir(path: Path):
     target_vids = []
     for root, dirs, files in os.walk(path):
         for file in files:
